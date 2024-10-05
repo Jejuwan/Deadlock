@@ -25,7 +25,7 @@ UDlkAssetManager& UDlkAssetManager::Get()
 		return *Singleton;
 	}
 
-	UE_LOG(LogDlk, Fatal, TEXT("invalid AssetManagerClassName in DefaultEngine.ini(project settings); it must be HakAssetManager"));
+	UE_LOG(LogDlk, Fatal, TEXT("invalid AssetManagerClassName in DefaultEngine.ini(project settings); it must be DlkAssetManager"));
 
 	// 위의 UE_LOG의 Fatal의 Verbose가 물론 Crash를 통해, 여기까지 도달하지는 않지만, Code Completness를 위해 더미로 리턴 진행
 	return *NewObject<UDlkAssetManager>();
@@ -35,7 +35,7 @@ bool UDlkAssetManager::ShouldLogAssetLoads()
 {
 	// 여기서 여러분이 알아두면 좋은 두 가지 Unreal 코딩 패턴이있다:
 // 1. FParse::Param과 FCommandLine::Get()을 통해, 여러분들이 원하는 속성값은 CommandLine으로 가져올 수 있다
-//    - 한번 UHakAssetManager::Get()을 통해 실습해보자
+//    - 한번 UDlkAssetManager::Get()을 통해 실습해보자
 // 2. 함수 안에 static 변수 선언이다:
 //    - 언리얼에서 자주 보게될 패턴으로, 보통 글로벌 변수를 선언하고 싶을 경우, 여러분에게 두가지 옵션이 있다:
 //      1. .h 파일에 extern을 선언하여 헤더파일을 포함시키거나?
@@ -43,7 +43,7 @@ bool UDlkAssetManager::ShouldLogAssetLoads()
 //         - 대표적인 예시로 앞서 Singleton 패턴이 되겠다
 
 // 실습:
-// - UHakAssetManager::TestClone 구현
+// - UDlkAssetManager::TestClone 구현
 // - bLogAssetLoads의 메모리 주소를 파악
 	static bool bLogAssetLoads = FParse::Param(FCommandLine::Get(), TEXT("LogAssetLoads"));
 	return bLogAssetLoads;
@@ -107,8 +107,8 @@ void UDlkAssetManager::StartInitialLoading()
 	// 오버라이드할 경우, Super의 호출은 꼭 까먹지 말자
 	Super::StartInitialLoading();
 
-	// HakGameplayTags 초기화
+	// DlkGameplayTags 초기화
 	// - Lyra와의 차이점을 한번 보고 가자:
 	//   - STARTUP_JOB() 매크로를 활용하고 있으나, 현재 우리는 로딩과 관계 없으므로 간단하게 구현
-	//FHakGameplayTags::InitializeNativeTags();
+	//FHDlkGameplayTags::InitializeNativeTags();
 }

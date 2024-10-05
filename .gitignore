@@ -292,7 +292,7 @@ Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/**
 !*.umap
 
 # Content 폴더 예외 처리
-!/Games/Hak/Content/
+!/Games/Dlk/Content/
 
-# Hak의 Platform 제외
-/Games/Hak/Platforms/
+# Dlk의 Platform 제외
+/Games/Dlk/Platforms/
