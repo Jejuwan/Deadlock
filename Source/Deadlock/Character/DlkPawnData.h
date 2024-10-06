@@ -16,4 +16,7 @@ class DEADLOCK_API UDlkPawnData : public UPrimaryDataAsset
 public:
 	UDlkPawnData(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	/** Pawn¿« Class */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|Pawn")
+	TSubclassOf<APawn> PawnClass;
 };

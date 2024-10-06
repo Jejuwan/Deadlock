@@ -8,7 +8,18 @@ public class Deadlock : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { 
+		"Core",
+		"CoreUObject",
+		"Engine",
+		"InputCore",
+		"EnhancedInput",
+		//Gas
+		"GameplayTags",
+		//Game Features
+		"ModularGameplay",
+		"GameFeatures"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
