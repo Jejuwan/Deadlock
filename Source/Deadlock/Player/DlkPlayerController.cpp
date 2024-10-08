@@ -2,4 +2,9 @@
 
 
 #include "DlkPlayerController.h"
+#include "Deadlock/Camera/DlkPlayerCameraManager.h"
 
+ADlkPlayerController::ADlkPlayerController(const FObjectInitializer& ObjectInitializer)
+{
+	PlayerCameraManagerClass = ADlkPlayerCameraManager::StaticClass();
+}

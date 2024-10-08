@@ -7,6 +7,7 @@
 #include "DlkExperienceManagerComponent.h"
 #include "Deadlock/Character/DlkCharacter.h"
 #include "Deadlock/Character/DlkPawnData.h"
+#include "Deadlock/Character/DlkPawnExtensionComponent.h"
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Player/DlkPlayerState.h"
 #include "Deadlock/DlkLogChannels.h"
@@ -66,7 +67,30 @@ void ADlkGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController*
 
 APawn* ADlkGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
 {
-	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Instigator = GetInstigator();
+	SpawnInfo.ObjectFlags |= RF_Transient;
+	SpawnInfo.bDeferConstruction = true;
+
+	if (UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer))
+	{
+		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo))
+		{
+			// FindPawnExtensionComponent ±¸Çö
+			if (UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
+			{
+				if (const UDlkPawnData* PawnData = GetPawnDataForController(NewPlayer))
+				{
+					PawnExtComp->SetPawnData(PawnData);
+				}
+			}
+
+			SpawnedPawn->FinishSpawning(SpawnTransform);
+			return SpawnedPawn;
+		}
+	}
+
+	return nullptr;
 }
 
 

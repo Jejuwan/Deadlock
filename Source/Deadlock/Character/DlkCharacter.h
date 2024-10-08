@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "DlkCharacter.generated.h"
 
+class UDlkPawnExtensionComponent;
+class UDlkCameraComponent;
+
 UCLASS()
 class DEADLOCK_API ADlkCharacter : public ACharacter
 {
@@ -25,5 +28,12 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dlk|Character")
+	TObjectPtr<UDlkPawnExtensionComponent> PawnExtComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dlk | Character")
+	TObjectPtr<UDlkCameraComponent> CameraComponent;
 
 };

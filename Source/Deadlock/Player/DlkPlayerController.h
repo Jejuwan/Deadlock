@@ -14,4 +14,5 @@ class DEADLOCK_API ADlkPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+	ADlkPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 };

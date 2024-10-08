@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "DlkPawnData.generated.h"
 
+class UDlkCameraMode;
 /**
  * 
  */
@@ -19,4 +20,8 @@ public:
 	/** Pawn¿« Class */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|Pawn")
 	TSubclassOf<APawn> PawnClass;
+
+	/** Camera Mode */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|Camera")
+	TSubclassOf<UDlkCameraMode> DefaultCameraMode;
 };
