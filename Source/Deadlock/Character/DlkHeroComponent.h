@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "Components/PawnComponent.h"
 #include "Components/GameFrameworkInitStateInterface.h"
+#include "Deadlock/Input/DlkMappableConfigPair.h"
 #include "DlkHeroComponent.generated.h"
 
 /**
  * 
  */
+struct FInputActionValue;
 class UDlkCameraMode;
 
 /**
@@ -27,6 +29,9 @@ public:
 
 	/** FeatureName 정의 */
 	static const FName NAME_ActorFeatureName;
+
+	/** Extension Event 이름 정의 */
+	static const FName NAME_BindInputsNow;
 
 	/**
 	 * UPawnComponent interface
@@ -48,4 +53,13 @@ public:
 	 * member methods
 	 */
 	TSubclassOf<UDlkCameraMode> DetermineCameraMode() const;
+	void InitializePlayerInput(UInputComponent* PlayerInputComponent);
+	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_LookMouse(const FInputActionValue& InputActionValue);
+
+	/**
+* member variables
+*/
+	UPROPERTY(EditAnywhere)
+	TArray<FDlkMappableConfigPair> DefaultInputConfigs;
 };

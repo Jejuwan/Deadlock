@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "DlkPawnData.generated.h"
 
+class UDlkInputConfig;
 class UDlkCameraMode;
 /**
  * 
@@ -24,4 +25,8 @@ public:
 	/** Camera Mode */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|Camera")
 	TSubclassOf<UDlkCameraMode> DefaultCameraMode;
+
+	/** input configuration used by player controlled pawns to create input mappings and bind input actions */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|InputConfig")
+	TObjectPtr<UDlkInputConfig> InputConfig;
 };

@@ -18,7 +18,10 @@ public class Deadlock : ModuleRules
 		"GameplayTags",
 		//Game Features
 		"ModularGameplay",
-		"GameFeatures"
+		"GameFeatures",
+		//Input
+		"InputCore",
+		"EnhancedInput",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

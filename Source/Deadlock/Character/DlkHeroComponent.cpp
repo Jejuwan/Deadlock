@@ -4,14 +4,22 @@
 #include "DlkHeroComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "DlkPawnExtensionComponent.h"
+#include "PlayerMappableInputConfig.h"
+#include "Deadlock/Input/DlkMappableConfigPair.h"
+#include "Deadlock/Input/DlkInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "Deadlock/DlkLogChannels.h"
 #include "Deadlock/DlkGameplayTags.h"
 #include "Deadlock/Player/DlkPlayerState.h"
+#include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Character/DlkPawnData.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
 
 /** FeatureName 정의: static member variable 초기화 */
 const FName UDlkHeroComponent::NAME_ActorFeatureName("Hero");
+
+/** InputConfig의 GameFeatureAction 활성화 ExtensioEvent 이름 */
+const FName UDlkHeroComponent::NAME_BindInputsNow("BindInputsNow");
 
 UDlkHeroComponent::UDlkHeroComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -146,6 +154,14 @@ void UDlkHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Ma
 				CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
 			}
 		}
+
+		if (ADlkPlayerController* DlkPC = GetController<ADlkPlayerController>())
+		{
+			if (Pawn->InputComponent != nullptr)
+			{
+				InitializePlayerInput(Pawn->InputComponent);
+			}
+		}
 	}
 }
 PRAGMA_ENABLE_OPTIMIZATION
@@ -179,4 +195,121 @@ TSubclassOf<UDlkCameraMode> UDlkHeroComponent::DetermineCameraMode() const
 
 	return nullptr;
 }
+
 PRAGMA_ENABLE_OPTIMIZATION
+
+void UDlkHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputComponent)
+{
+	check(PlayerInputComponent);
+
+	const APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn)
+	{
+		return;
+	}
+
+	// LocalPlayer를 가져오기 위해
+	const APlayerController* PC = GetController<APlayerController>();
+	check(PC);
+
+	// EnhancedInputLocalPlayerSubsystem 가져오기 위해
+	const ULocalPlayer* LP = PC->GetLocalPlayer();
+	check(LP);
+
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	check(Subsystem);
+
+	// EnhancedInputLocalPlayerSubsystem에 MappingContext를 비워준다:
+	Subsystem->ClearAllMappings();
+
+	// PawnExtensionComponent -> PawnData -> InputConfig 존재 유무 판단:
+	if (const UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+	{
+		if (const UDlkPawnData* PawnData = PawnExtComp->GetPawnData<UDlkPawnData>())
+		{
+			if (const UDlkInputConfig* InputConfig = PawnData->InputConfig)
+			{
+				const FDlkGameplayTags& GameplayTags = FDlkGameplayTags::Get();
+
+				// HeroComponent 가지고 있는 Input Mapping Context를 순회하며, EnhancedInputLocalPlayerSubsystem에 추가한다
+				for (const FDlkMappableConfigPair& Pair : DefaultInputConfigs)
+				{
+					if (Pair.bShouldActivateAutomatically)
+					{
+						FModifyContextOptions Options = {};
+						Options.bIgnoreAllPressedKeysUntilRelease = false;
+
+						// 내부적으로 Input Mapping Context를 추가한다:
+						// - AddPlayerMappableConfig를 간단히 보는 것을 추천
+						Subsystem->AddPlayerMappableConfig(Pair.Config.LoadSynchronous(), Options);
+					}
+				}
+
+				UDlkInputComponent* DlkIC = CastChecked<UDlkInputComponent>(PlayerInputComponent);
+				{
+					// InputTag_Move와 InputTag_Look_Mouse에 대해 각각 Input_Move()와 Input_LookMouse() 멤버 함수에 바인딩시킨다:
+					// - 바인딩한 이후, Input 이벤트에 따라 멤버 함수가 트리거된다
+					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
+					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
+				}
+			}
+		}
+	}
+
+	// GameFeatureAction_AddInputConfig의 HandlePawnExtension 콜백 함수 전달
+	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
+}
+
+void UDlkHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
+{
+	APawn* Pawn = GetPawn<APawn>();
+	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
+
+	if (Controller)
+	{
+		const FVector2D Value = InputActionValue.Get<FVector2D>();
+		const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+
+		if (Value.X != 0.0f)
+		{
+			// Left/Right -> X 값에 들어있음:
+			// MovementDirection은 현재 카메라의 RightVector를 의미함 (World-Space)
+			const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+
+			// AddMovementInput 함수를 한번 보자:
+			// - 내부적으로 MovementDirection * Value.X를 MovementComponent에 적용(더하기)해준다
+			Pawn->AddMovementInput(MovementDirection, Value.X);
+		}
+
+		if (Value.Y != 0.0f) // 앞서 우리는 Forward 적용을 위해 swizzle input modifier를 사용했다~
+		{
+			// 앞서 Left/Right와 마찬가지로 Forward/Backward를 적용한다
+			const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+			Pawn->AddMovementInput(MovementDirection, Value.Y);
+		}
+	}
+}
+
+void UDlkHeroComponent::Input_LookMouse(const FInputActionValue& InputActionValue)
+{
+	APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn)
+	{
+		return;
+	}
+
+	const FVector2D Value = InputActionValue.Get<FVector2D>();
+	if (Value.X != 0.0f)
+	{
+		// X에는 Yaw 값이 있음:
+		// - Camera에 대해 Yaw 적용
+		Pawn->AddControllerYawInput(Value.X);
+	}
+
+	if (Value.Y != 0.0f)
+	{
+		// Y에는 Pitch 값!
+		double AimInversionValue = -Value.Y;
+		Pawn->AddControllerPitchInput(AimInversionValue);
+	}
+}
