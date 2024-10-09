@@ -11,6 +11,7 @@
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Player/DlkPlayerState.h"
 #include "Deadlock/DlkLogChannels.h"
+#include "Kismet/GameplayStatics.h"
 
 
 ADlkGameModeBase::ADlkGameModeBase()
@@ -105,6 +106,14 @@ void ADlkGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
 	// - default experience
 
 	UWorld* World = GetWorld();
+
+	// 우리가 앞서, URL과 함께 ExtraArgs로 넘겼던 정보는 OptionsString에 저정되어 있다.
+	if (!ExperienceId.IsValid() && UGameplayStatics::HasOption(OptionsString, TEXT("Experience")))
+	{
+		// Experience의 Value를 가져와서, PrimaryAssetId를 생성해준다: 이때, HakExperienceDefinition의 Class 이름을 사용한다
+		const FString ExperienceFromOptions = UGameplayStatics::ParseOption(OptionsString, TEXT("Experience"));
+		ExperienceId = FPrimaryAssetId(FPrimaryAssetType(UDlkExperienceDefinition::StaticClass()->GetFName()), FName(*ExperienceFromOptions));
+	}
 
 	// fall back to the default experience
 	// 일단 기본 옵션으로 default하게 B_HakDefaultExperience로 설정놓자

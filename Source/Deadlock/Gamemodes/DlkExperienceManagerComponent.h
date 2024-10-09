@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/GameStateComponent.h"
+#include "GameFeaturePluginOperationResult.h"
 #include "DlkExperienceManagerComponent.generated.h"
 
 class UDlkExperienceDefinition;
@@ -44,6 +45,7 @@ public:
 	void ServerSetCurrentExperience(FPrimaryAssetId ExperienceId);
 	void StartExperienceLoad();
 	void OnExperienceLoadComplete();
+	void OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result);
 	void OnExperienceFullLoadCompleted();
 	const UDlkExperienceDefinition* GetCurrentExperienceChecked() const;
 public:
@@ -56,4 +58,7 @@ public:
 	/** Experience 로딩이 완료된 이후, Broadcasting Delegate */
 	FOnDlkExperienceLoaded OnExperienceLoaded;
 
+	/** 활성화된 GameFeature Plugin들 */
+	int32 NumGameFeaturePluginsLoading = 0;
+	TArray<FString> GameFeaturePluginURLs;
 };
