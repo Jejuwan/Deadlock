@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "DlkExperienceDefinition.generated.h"
 
 class UDlkPawnData;
+class UDlkExperienceActionSet;
+class UGameFeatureAction;
 
 UCLASS()
 class DEADLOCK_API UDlkExperienceDefinition : public UPrimaryDataAsset
@@ -23,4 +26,12 @@ public:
 	// - GameMode에 따라 필요한 GameFeature plugin들을 로딩하는데 이에 대한 연결고리로 생각하면 된다 (현재는 쓰지 않음)
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TArray<FString> GameFeaturesToEnable;
+
+	/** ExperienceActionSet은 UGameFeatureAction의 Set이며, Gameplay 용도에 맞게 분류의 목적으로 사용한다 */
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
+	TArray<TObjectPtr<UDlkExperienceActionSet>> ActionSets;
+
+	/** 일반적인 GameFeatureAction으로서 추가 */
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Actions")
+	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 };

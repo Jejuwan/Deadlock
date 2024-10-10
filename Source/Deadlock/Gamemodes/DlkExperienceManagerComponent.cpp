@@ -7,6 +7,7 @@
 #include "GameFeaturesSubsystem.h"
 #include "GameFeatureAction.h"
 #include "Deadlock/System/DlkAssetManager.h"
+#include "DlkExperienceActionSet.h"
 
 void UDlkExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnDlkExperienceLoaded::FDelegate&& Delegate)
 {
@@ -167,49 +168,6 @@ void UDlkExperienceManagerComponent::OnExperienceLoadComplete()
 
 void UDlkExperienceManagerComponent::OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result)
 {
-	//// FrameNumber를 주목해서 보자
-	//static int32 OnExperienceLoadComplete_FrameNumber = GFrameNumber;
-
-	//check(LoadState == EDlkExperienceLoadState::Loading);
-	//check(CurrentExperience);
-
-	//// 이전 활성화된 GameFeature Plugin의 URL을 클리어해준다
-	//GameFeaturePluginURLs.Reset();
-
-	//auto CollectGameFeaturePluginURLs = [This = this](const UPrimaryDataAsset* Context, const TArray<FString>& FeaturePluginList)
-	//	{
-	//		// FeaturePluginList를 순회하며, PluginURL을 ExperienceManagerComponent의 GameFeaturePluginURLS에 추가해준다
-	//		for (const FString& PluginName : FeaturePluginList)
-	//		{
-	//			FString PluginURL;
-	//			if (UGameFeaturesSubsystem::Get().GetPluginURLByName(PluginName, PluginURL))
-	//			{
-	//				This->GameFeaturePluginURLs.AddUnique(PluginURL);
-	//			}
-	//		}
-	//	};
-
-	//// GameFeaturesToEnable에 있는 Plugin만 일단 활성화할 GameFeature Plugin 후보군으로 등록
-	//CollectGameFeaturePluginURLs(CurrentExperience, CurrentExperience->GameFeaturesToEnable);
-
-	//// GameFeaturePluginURLs에 등록된 Plugin을 로딩 및 활성화:
-	//NumGameFeaturePluginsLoading = GameFeaturePluginURLs.Num();
-	//if (NumGameFeaturePluginsLoading)
-	//{
-	//	LoadState = EDlkExperienceLoadState::LoadingGameFeatures;
-	//	for (const FString& PluginURL : GameFeaturePluginURLs)
-	//	{
-	//		// 매 Plugin이 로딩 및 활성화 이후, OnGameFeaturePluginLoadComplete 콜백 함수 등록
-	//		// 해당 함수를 살펴보도록 하자
-	//		UGameFeaturesSubsystem::Get().LoadAndActivateGameFeaturePlugin(PluginURL, FGameFeaturePluginLoadComplete::CreateUObject(this, &ThisClass::OnGameFeaturePluginLoadComplete));
-	//	}
-	//}
-	//else
-	//{
-	//	// 해당 함수가 불리는 것은 앞서 보았던 StreamableDelegateDelayHelper에 의해 불림
-	//	OnExperienceFullLoadCompleted();
-	//}
-
 		// 매 GameFeature Plugin이 로딩될 때, 해당 함수가 콜백으로 불린다
 	NumGameFeaturePluginsLoading--;
 	if (NumGameFeaturePluginsLoading == 0)
@@ -223,6 +181,45 @@ void UDlkExperienceManagerComponent::OnGameFeaturePluginLoadComplete(const UE::G
 void UDlkExperienceManagerComponent::OnExperienceFullLoadCompleted()
 {
 	check(LoadState != EDlkExperienceLoadState::Loaded);
+
+	// GameFeature Plugin의 로딩과 활성화 이후, GameFeature Action들을 활성화 시키자:
+	{
+		LoadState = EDlkExperienceLoadState::ExecutingActions;
+
+		// GameFeatureAction 활성화를 위한 Context 준비
+		FGameFeatureActivatingContext Context;
+		{
+			// 월드의 핸들을 세팅해준다
+			const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
+			if (ExistingWorldContext)
+			{
+				Context.SetRequiredWorldContextHandle(ExistingWorldContext->ContextHandle);
+			}
+		}
+
+		auto ActivateListOfActions = [&Context](const TArray<UGameFeatureAction*>& ActionList)
+			{
+				for (UGameFeatureAction* Action : ActionList)
+				{
+					// 명시적으로 GameFeatureAction에 대해 Registering -> Loading -> Activating 순으로 호출한다
+					if (Action)
+					{
+						Action->OnGameFeatureRegistering();
+						Action->OnGameFeatureLoading();
+						Action->OnGameFeatureActivating(Context);
+					}
+				}
+			};
+
+		// 1. Experience의 Actions
+		ActivateListOfActions(CurrentExperience->Actions);
+
+		// 2. Experience의 ActionSets
+		for (const TObjectPtr<UDlkExperienceActionSet>& ActionSet : CurrentExperience->ActionSets)
+		{
+			ActivateListOfActions(ActionSet->Actions);
+		}
+	}
 
 	LoadState = EDlkExperienceLoadState::Loaded;
 	OnExperienceLoaded.Broadcast(CurrentExperience);
