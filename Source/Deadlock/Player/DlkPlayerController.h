@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "ModularPlayerController.h"
 #include "DlkPlayerController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class DEADLOCK_API ADlkPlayerController : public APlayerController
+class DEADLOCK_API ADlkPlayerController : public AModularPlayerController
 {
 	GENERATED_BODY()
 	

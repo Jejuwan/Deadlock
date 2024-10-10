@@ -18,7 +18,8 @@ public class Deadlock : ModuleRules
 		"GameplayTags",
 		//Game Features
 		"ModularGameplay",
-		"GameFeatures",
+        "GameFeatures",
+        "ModularGameplayActors",
 		//Input
 		"InputCore",
 		"EnhancedInput",

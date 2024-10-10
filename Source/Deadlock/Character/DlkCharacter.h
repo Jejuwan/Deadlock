@@ -3,17 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "ModularCharacter.h"
 #include "DlkCharacter.generated.h"
 
 class UDlkPawnExtensionComponent;
 class UDlkCameraComponent;
 
 UCLASS()
-class DEADLOCK_API ADlkCharacter : public ACharacter
+class DEADLOCK_API ADlkCharacter : public AModularCharacter
 {
 	GENERATED_BODY()
-
 public:
 	// Sets default values for this character's properties
 	ADlkCharacter();
