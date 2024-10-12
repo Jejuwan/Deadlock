@@ -12,6 +12,7 @@
  */
 class UDlkPawnData;
 class UDlkPawnExtensionComponent;
+class UDlkAbilitySystemComponent;
 /**
  * 초기화 전반을 조정하는 컴포넌트
  */
@@ -33,6 +34,10 @@ GENERATED_BODY()
 		const T* GetPawnData() const { return Cast<T>(PawnData); }
 		void SetPawnData(const UDlkPawnData* InPawnData);
 		void SetupPlayerInputComponent();
+		UDlkAbilitySystemComponent* GetDlkAbilitySystemComponent() const { return AbilitySystemComponent; }
+		/** AbilitySystemComponent의 AvatorActor 대상 초기화/해제 호출 */
+		void InitializeAbilitySystem(UDlkAbilitySystemComponent* InASC, AActor* InOwnerActor);
+		void UninitializeAbilitySystem();
 
 		/**
 		* UPawnComponent interfaces
@@ -54,4 +59,8 @@ GENERATED_BODY()
 		 */
 		UPROPERTY(EditInstanceOnly, Category = "Dlk|Pawn")
 		TObjectPtr<const UDlkPawnData> PawnData;
+
+		/** AbilitySystemComponent 캐싱 */
+		UPROPERTY()
+		TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
 };

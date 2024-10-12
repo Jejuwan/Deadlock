@@ -4,6 +4,7 @@
 #include "DlkCharacter.h"
 #include "DlkPawnExtensionComponent.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 
 // Sets default values
 ADlkCharacter::ADlkCharacter()
@@ -22,6 +23,12 @@ ADlkCharacter::ADlkCharacter()
 		CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 	}
 
+}
+
+UAbilitySystemComponent* ADlkCharacter::GetAbilitySystemComponent() const
+{
+	// 앞서, 우리는 PawnExtensionComponent에 AbilitySystemComponent를 캐싱하였다
+	return PawnExtComponent->GetDlkAbilitySystemComponent();
 }
 
 // Called when the game starts or when spawned

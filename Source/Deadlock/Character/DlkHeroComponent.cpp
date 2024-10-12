@@ -14,6 +14,7 @@
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Character/DlkPawnData.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 
 /** FeatureName 정의: static member variable 초기화 */
 const FName UDlkHeroComponent::NAME_ActorFeatureName("Hero");
@@ -137,10 +138,19 @@ void UDlkHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Ma
 			return;
 		}
 
-		// Input과 Camera에 대한 핸들링... (TODO)
-
 		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
 		const UDlkPawnData* PawnData = nullptr;
+		if (UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+		{
+			PawnData = PawnExtComp->GetPawnData<UDlkPawnData>();
+
+			// DataInitialized 단계까지 오면, Pawn이 Controller에 Possess되어 준비된 상태이다:
+			// - InitAbilityActorInfo 호출로 AvatarActor 재설정이 필요하다
+			PawnExtComp->InitializeAbilitySystem(DlkPS->GetDlkAbilitySystemComponent(), DlkPS);
+		}
+
+		// Input과 Camera에 대한 핸들링... (TODO)
+
 		if (UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 		{
 			PawnData = PawnExtComp->GetPawnData<UDlkPawnData>();
@@ -248,6 +258,12 @@ void UDlkHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompon
 				UDlkInputComponent* DlkIC = CastChecked<UDlkInputComponent>(PlayerInputComponent);
 				{
 					// InputTag_Move와 InputTag_Look_Mouse에 대해 각각 Input_Move()와 Input_LookMouse() 멤버 함수에 바인딩시킨다:
+		// - 바인딩한 이후, Input 이벤트에 따라 멤버 함수가 트리거된다
+					{
+						TArray<uint32> BindHandles;
+						DlkIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, BindHandles);
+					}
+					// InputTag_Move와 InputTag_Look_Mouse에 대해 각각 Input_Move()와 Input_LookMouse() 멤버 함수에 바인딩시킨다:
 					// - 바인딩한 이후, Input 이벤트에 따라 멤버 함수가 트리거된다
 					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
 					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
@@ -311,5 +327,33 @@ void UDlkHeroComponent::Input_LookMouse(const FInputActionValue& InputActionValu
 		// Y에는 Pitch 값!
 		double AimInversionValue = -Value.Y;
 		Pawn->AddControllerPitchInput(AimInversionValue);
+	}
+}
+
+void UDlkHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	if (const APawn* Pawn = GetPawn<APawn>())
+	{
+		if (const UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+		{
+			if (UDlkAbilitySystemComponent* DlkASC = PawnExtComp->GetDlkAbilitySystemComponent())
+			{
+				DlkASC->AbilityInputTagPressed(InputTag);
+			}
+		}
+	}
+}
+
+void UDlkHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	if (const APawn* Pawn = GetPawn<APawn>())
+	{
+		if (const UDlkPawnExtensionComponent* PawnExtComp = UDlkPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+		{
+			if (UDlkAbilitySystemComponent* DlkASC = PawnExtComp->GetDlkAbilitySystemComponent())
+			{
+				DlkASC->AbilityInputTagReleased(InputTag);
+			}
+		}
 	}
 }

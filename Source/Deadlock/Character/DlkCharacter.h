@@ -4,19 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "ModularCharacter.h"
+#include "AbilitySystemInterface.h"
 #include "DlkCharacter.generated.h"
 
 class UDlkPawnExtensionComponent;
 class UDlkCameraComponent;
 
 UCLASS()
-class DEADLOCK_API ADlkCharacter : public AModularCharacter
+class DEADLOCK_API ADlkCharacter : public AModularCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
 	// Sets default values for this character's properties
 	ADlkCharacter();
-
+	/**
+ * IAbilitySystemInterface
+ */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

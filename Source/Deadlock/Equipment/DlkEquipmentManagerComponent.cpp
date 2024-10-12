@@ -4,6 +4,8 @@
 #include "DlkEquipmentManagerComponent.h"
 #include "DlkEquipmentDefinition.h"
 #include "DlkEquipmentInstance.h"
+#include "AbilitySystemGlobals.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 
 UDlkEquipmentInstance* FDlkEquipmentList::AddEntry(TSubclassOf<UDlkEquipmentDefinition> EquipmentDefinition)
 {
@@ -27,6 +29,15 @@ UDlkEquipmentInstance* FDlkEquipmentList::AddEntry(TSubclassOf<UDlkEquipmentDefi
 	NewEntry.Instance = NewObject<UDlkEquipmentInstance>(OwnerComponent->GetOwner(), InstanceType);
 	Result = NewEntry.Instance;
 
+	UDlkAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	check(ASC);
+	{
+		for (const TObjectPtr<UDlkAbilitySet> AbilitySet : EquipmentCDO->AbilitySetsToGrant)
+		{
+			AbilitySet->GiveToAbilitySystem(ASC, &NewEntry.GrantedHandles, Result);
+		}
+	}
+
 	// ActorsToSpawn을 통해, Actor들을 인스턴스화 해주자
 	// - 어디에? EquipmentInstance에!
 	Result->SpawnEquipmentActors(EquipmentCDO->ActorsToSpawn);
@@ -42,6 +53,13 @@ void FDlkEquipmentList::RemoveEntry(UDlkEquipmentInstance* Instance)
 		FDlkAppliedEquipmentEntry& Entry = *EntryIt;
 		if (Entry.Instance == Instance)
 		{
+			UDlkAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+			check(ASC);
+			{
+				// TakeFromAbilitySystem은 GiveToAbilitySystem 반대 역활로, ActivatableAbilities에서 제거한다
+				Entry.GrantedHandles.TakeFromAbilitySystem(ASC);
+			}
+
 			// Actor 제거 작업 및 iterator를 통한 안전하게 Array에서 제거 진행
 			Instance->DestroyEquipmentActors();
 			EntryIt.RemoveCurrent();
@@ -49,8 +67,20 @@ void FDlkEquipmentList::RemoveEntry(UDlkEquipmentInstance* Instance)
 	}
 }
 
+UDlkAbilitySystemComponent* FDlkEquipmentList::GetAbilitySystemComponent() const
+{
+	check(OwnerComponent);
+	AActor* OwningActor = OwnerComponent->GetOwner();
+
+	// GetAbilitySystemComponentFromActor를 잠시 확인해보자:
+	// - EquipmentManagerComponent는 ADlkCharacter를 Owner로 가지고 있다
+	// - 해당 함수는 IAbilitySystemInterface를 통해 AbilitySystemComponent를 반환한다
+	// - 우리는 DlkCharacter에 IAbilitySystemInterface를 상속받을 필요가 있다
+	return Cast<UDlkAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwningActor));
+}
+
 UDlkEquipmentManagerComponent::UDlkEquipmentManagerComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
-                                                                                                            , EquipmentList(this)
+, EquipmentList(this)
 {
 }
 
@@ -79,4 +109,24 @@ void UDlkEquipmentManagerComponent::UnequipItem(UDlkEquipmentInstance* ItemInsta
 		// - 제거하는 과정을 통해 추가되었던 Actor Instance를 제거를 진행한다
 		EquipmentList.RemoveEntry(ItemInstance);
 	}
+}
+
+TArray<UDlkEquipmentInstance*> UDlkEquipmentManagerComponent::GetEquipmentInstancesOfType(TSubclassOf<UDlkEquipmentInstance> InstanceType) const
+{
+	TArray<UDlkEquipmentInstance*> Results;
+
+	// EquipmentList를 순회하며
+	for (const FDlkAppliedEquipmentEntry& Entry : EquipmentList.Entries)
+	{
+		if (UDlkEquipmentInstance* Instance = Entry.Instance)
+		{
+			// InstanceType에 맞는 Class이면 Results에 추가하여 반환
+			// - 우리의 경우, DlkRangedWeaponInstance가 될거임
+			if (Instance->IsA(InstanceType))
+			{
+				Results.Add(Instance);
+			}
+		}
+	}
+	return Results;
 }

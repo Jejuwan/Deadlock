@@ -16,6 +16,8 @@ public class Deadlock : ModuleRules
 		"EnhancedInput",
 		//Gas
 		"GameplayTags",
+		"GameplayTasks",
+		"GameplayAbilities",
 		//Game Features
 		"ModularGameplay",
         "GameFeatures",

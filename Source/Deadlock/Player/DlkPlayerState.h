@@ -8,6 +8,7 @@
 
 class UDlkPawnData;
 class UDlkExperienceDefinition;
+class UDlkAbilitySystemComponent;
 /**
  * 
  */
@@ -16,6 +17,7 @@ class DEADLOCK_API ADlkPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	ADlkPlayerState(const FObjectInitializer& ObjectInitializer);
 	/**
 	 * AActor's interface
 	 */
@@ -29,7 +31,11 @@ public:
 	const T* GetPawnData() const { return Cast<T>(PawnData); }
 	void OnExperienceLoaded(const UDlkExperienceDefinition* CurrentExperience);
 	void SetPawnData(const UDlkPawnData* InPawnData);
+	UDlkAbilitySystemComponent* GetDlkAbilitySystemComponent() const { return AbilitySystemComponent; }
 
 	UPROPERTY()
 	TObjectPtr<const UDlkPawnData> PawnData;
+
+	UPROPERTY(VisibleAnywhere, Category = "Dlk|PlayerState")
+	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
 };

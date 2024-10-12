@@ -7,6 +7,7 @@
 #include "Deadlock/DlkLogChannels.h"
 #include "Deadlock/DlkGameplayTags.h"
 #include "Deadlock/Character/DlkPawnData.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 
 /** feature name을 component 단위니깐 component를 빼고 pawn extension만 넣은 것을 확인할 수 있다 */
 const FName UDlkPawnExtensionComponent::NAME_ActorFeatureName("PawnExtension");
@@ -40,6 +41,40 @@ void UDlkPawnExtensionComponent::SetupPlayerInputComponent()
 {
 	// ForceUpdate로 다시 InitState 상태 변환 시작 (연결 고리)
 	CheckDefaultInitialization();
+}
+
+void UDlkPawnExtensionComponent::InitializeAbilitySystem(UDlkAbilitySystemComponent* InASC, AActor* InOwnerActor)
+{
+	check(InASC && InOwnerActor);
+
+	if (AbilitySystemComponent == InASC)
+	{
+		return;
+	}
+
+	if (AbilitySystemComponent)
+	{
+		UninitializeAbilitySystem();
+	}
+
+	APawn* Pawn = GetPawnChecked<APawn>();
+
+	AActor* ExistingAvatar = InASC->GetAvatarActor();
+	check(!ExistingAvatar);
+
+	// ASC를 업데이트하고, InitAbilityActorInfo를 Pawn과 같이 호출하여, AvatarActor를 Pawn으로 업데이트 해준다
+	AbilitySystemComponent = InASC;
+	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+}
+
+void UDlkPawnExtensionComponent::UninitializeAbilitySystem()
+{
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+
+	AbilitySystemComponent = nullptr;
 }
 
 void UDlkPawnExtensionComponent::OnRegister()
