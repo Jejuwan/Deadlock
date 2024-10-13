@@ -123,7 +123,7 @@ FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* Source
 	const FVector WeaponLoc = GetWeaponTargetingSourceLocation();
 	FVector FinalCamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 
-#if 1
+#if 0
 	{
 		// WeaponLoc (»ç½Ç»ó ActorLoc)
 		DrawDebugPoint(GetWorld(), WeaponLoc, 10.0f, FColor::Red, false, 60.0f);
