@@ -10,6 +10,7 @@
 #include "Deadlock/Character/DlkPawnExtensionComponent.h"
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Player/DlkPlayerState.h"
+#include "Deadlock/UI/DlkHUD.h"
 #include "Deadlock/DlkLogChannels.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -20,7 +21,7 @@ ADlkGameModeBase::ADlkGameModeBase()
 	PlayerControllerClass = ADlkPlayerController::StaticClass();
 	PlayerStateClass = ADlkPlayerState::StaticClass();
 	DefaultPawnClass = ADlkCharacter::StaticClass();
-
+	HUDClass = ADlkHUD::StaticClass();
 }
 
 void ADlkGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)

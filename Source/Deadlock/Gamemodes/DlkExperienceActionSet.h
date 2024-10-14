@@ -18,6 +18,9 @@ class DEADLOCK_API UDlkExperienceActionSet : public UPrimaryDataAsset
 public:
 	UDlkExperienceActionSet();
 
+#if WITH_EDITORONLY_DATA
+	virtual void UpdateAssetBundleData() override;
+#endif
 	/**
 	 * member variables
 	 */

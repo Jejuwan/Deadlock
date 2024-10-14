@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ModularPlayerController.h"
+#include "CommonPlayerController.h"
 #include "DlkPlayerController.generated.h"
 
 class ADlkPlayerState;
@@ -12,7 +12,7 @@ class UDlkAbilitySystemComponent;
  * 
  */
 UCLASS()
-class DEADLOCK_API ADlkPlayerController : public AModularPlayerController
+class DEADLOCK_API ADlkPlayerController : public ACommonPlayerController
 {
 	GENERATED_BODY()
 	

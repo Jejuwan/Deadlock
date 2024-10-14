@@ -17,6 +17,10 @@ class DEADLOCK_API UDlkExperienceDefinition : public UPrimaryDataAsset
 public:
 	UDlkExperienceDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+#if WITH_EDITORONLY_DATA
+	virtual void UpdateAssetBundleData() override;
+#endif
+
 	/** the default pawn class to spawn for players */
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TObjectPtr<UDlkPawnData> DefaultPawnData;

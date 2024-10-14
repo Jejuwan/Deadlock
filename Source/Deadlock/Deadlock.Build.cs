@@ -27,6 +27,10 @@ public class Deadlock : ModuleRules
 		"EnhancedInput",
 		//CommonUser
 		"CommonUser",
+		"CommonGame",
+		"CommonUI",
+		"UMG",
+		"UIExtension",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
