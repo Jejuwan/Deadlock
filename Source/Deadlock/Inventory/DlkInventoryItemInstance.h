@@ -12,14 +12,14 @@ class UDlkInventoryItemDefinition;
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class DEADLOCK_API UDlkInventoryItemInstance : public UObject
 {
 	GENERATED_BODY()
 public:
 	UDlkInventoryItemInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
 	const UDlkInventoryItemFragment* FindFragmentByClass(TSubclassOf<UDlkInventoryItemFragment> FragmentClass) const;
 
 	template <typename ResultClass>

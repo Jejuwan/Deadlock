@@ -31,6 +31,8 @@ public class Deadlock : ModuleRules
 		"CommonUI",
 		"UMG",
 		"UIExtension",
+		"Slate",
+		"SlateCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

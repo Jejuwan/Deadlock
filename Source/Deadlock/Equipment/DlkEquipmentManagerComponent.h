@@ -68,6 +68,15 @@ public:
 	UDlkEquipmentInstance* EquipItem(TSubclassOf<UDlkEquipmentDefinition> EquipmentDefinition);
 	void UnequipItem(UDlkEquipmentInstance* ItemInstance);
 
+	/** 장착물 중 처음 것을 반환 없으면 NULL */
+	UDlkEquipmentInstance* GetFirstInstanceOfType(TSubclassOf<UDlkEquipmentInstance> InstanceType);
+
+	template <typename T>
+	T* GetFirstInstanceOfType()
+	{
+		return (T*)GetFirstInstanceOfType(T::StaticClass());
+	}
+
 	UFUNCTION(BlueprintCallable)
 	TArray<UDlkEquipmentInstance*> GetEquipmentInstancesOfType(TSubclassOf<UDlkEquipmentInstance> InstanceType) const;
 

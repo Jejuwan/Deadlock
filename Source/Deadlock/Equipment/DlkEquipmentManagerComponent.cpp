@@ -111,6 +111,21 @@ void UDlkEquipmentManagerComponent::UnequipItem(UDlkEquipmentInstance* ItemInsta
 	}
 }
 
+UDlkEquipmentInstance* UDlkEquipmentManagerComponent::GetFirstInstanceOfType(TSubclassOf<UDlkEquipmentInstance> InstanceType)
+{
+	for (FDlkAppliedEquipmentEntry& Entry : EquipmentList.Entries)
+	{
+		if (UDlkEquipmentInstance* Instance = Entry.Instance)
+		{
+			if (Instance->IsA(InstanceType))
+			{
+				return Instance;
+			}
+		}
+	}
+	return nullptr;
+}
+
 TArray<UDlkEquipmentInstance*> UDlkEquipmentManagerComponent::GetEquipmentInstancesOfType(TSubclassOf<UDlkEquipmentInstance> InstanceType) const
 {
 	TArray<UDlkEquipmentInstance*> Results;
