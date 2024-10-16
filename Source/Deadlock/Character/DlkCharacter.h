@@ -9,6 +9,7 @@
 
 class UDlkPawnExtensionComponent;
 class UDlkCameraComponent;
+class UDlkHealthComponent;
 
 UCLASS()
 class DEADLOCK_API ADlkCharacter : public AModularCharacter, public IAbilitySystemInterface
@@ -17,6 +18,9 @@ class DEADLOCK_API ADlkCharacter : public AModularCharacter, public IAbilitySyst
 public:
 	// Sets default values for this character's properties
 	ADlkCharacter();
+
+	void OnAbilitySystemInitialized();
+	void OnAbilitySystemUninitialized();
 	/**
  * IAbilitySystemInterface
  */
@@ -38,5 +42,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dlk | Character")
 	TObjectPtr<UDlkCameraComponent> CameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hak|Character")
+	TObjectPtr<UDlkHealthComponent> HealthComponent;
 
 };

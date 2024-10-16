@@ -7,10 +7,15 @@
 #include "Deadlock/Character/DlkPawnData.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySet.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
+#include "Deadlock/AbilitySystem/Attributes/DlkCombatSet.h"
+#include "Deadlock/AbilitySystem/Attributes/DlkHealthSet.h"
 
 ADlkPlayerState::ADlkPlayerState(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UDlkAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+
+	CreateDefaultSubobject<UDlkHealthSet>(TEXT("HealthSet"));
+	CreateDefaultSubobject<UDlkCombatSet>(TEXT("CombatSet"));
 }
 
 void ADlkPlayerState::PostInitializeComponents()

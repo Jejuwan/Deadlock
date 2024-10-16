@@ -65,6 +65,9 @@ void UDlkPawnExtensionComponent::InitializeAbilitySystem(UDlkAbilitySystemCompon
 	// ASC를 업데이트하고, InitAbilityActorInfo를 Pawn과 같이 호출하여, AvatarActor를 Pawn으로 업데이트 해준다
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+
+	OnAbilitySystemInitialized.Broadcast();
+
 }
 
 void UDlkPawnExtensionComponent::UninitializeAbilitySystem()
@@ -74,7 +77,36 @@ void UDlkPawnExtensionComponent::UninitializeAbilitySystem()
 		return;
 	}
 
+	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
+	{
+		// OnAbilitySystemUninitialized에 바인딩된 Delegate 호출
+		OnAbilitySystemUninitialized.Broadcast();
+	}
+
 	AbilitySystemComponent = nullptr;
+}
+
+void UDlkPawnExtensionComponent::OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate Delegate)
+{
+	// OnAbilitySystemInitialized에 UObject가 바인딩되어 있지 않으면 추가 (Uniqueness)
+	if (!OnAbilitySystemInitialized.IsBoundToObject(Delegate.GetUObject()))
+	{
+		OnAbilitySystemInitialized.Add(Delegate);
+	}
+
+	// 이미 ASC가 설정되었으면, Delegate에 추가하는게 아닌 바로 호출 (이미 초기화되어 있으니깐!)
+	if (AbilitySystemComponent)
+	{
+		Delegate.Execute();
+	}
+}
+
+void UDlkPawnExtensionComponent::OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate Delegate)
+{
+	if (!OnAbilitySystemUninitialized.IsBoundToObject(Delegate.GetUObject()))
+	{
+		OnAbilitySystemUninitialized.Add(Delegate);
+	}
 }
 
 void UDlkPawnExtensionComponent::OnRegister()
@@ -112,7 +144,7 @@ void UDlkPawnExtensionComponent::BeginPlay()
 	//   1. CanChangeInitState로 상태 변환 가능성 유무 판단
 	//   2. HandleChangeInitState로 내부 상태 변경 (Feature Component)
 	//   3. BindOnActorInitStateChanged로 Bind된 Delegate를 조건에 맞게 호출해 줌
-	//      - HakPawnExtensionComponent의 경우, 모든 Actor의 Feature 상태 변화에 대해 OnActorInitStateChanged()가 호출됨
+	//      - DlkPawnExtensionComponent의 경우, 모든 Actor의 Feature 상태 변화에 대해 OnActorInitStateChanged()가 호출됨
 	ensure(TryToChangeInitState(FDlkGameplayTags::Get().InitState_Spawned));
 
 	// 해당 함수는 우리가 오버라이딩 한다:
@@ -133,7 +165,7 @@ void UDlkPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateCh
 {
 	if (Params.FeatureName != NAME_ActorFeatureName)
 	{
-		// HakPawnExtensionComponent는 다른 Feature Component들의 상태가 DataAvailable를 관찰하여, Sync를 맞추는 구간이 있었다 (CanChangeInitState)
+		// DlkPawnExtensionComponent는 다른 Feature Component들의 상태가 DataAvailable를 관찰하여, Sync를 맞추는 구간이 있었다 (CanChangeInitState)
 		// - 이를 가능케하기 위해, OnActorInitStateChanged에서는 DataAvailable에 대해 지속적으로 CheckDefaultInitialization을 호출하여, 상태를 확인한다
 		const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
 		if (Params.FeatureState == InitTags.InitState_DataAvailable)

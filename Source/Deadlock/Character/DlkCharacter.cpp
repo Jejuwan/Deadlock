@@ -5,6 +5,7 @@
 #include "DlkPawnExtensionComponent.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
+#include "DlkHealthComponent.h"
 
 // Sets default values
 ADlkCharacter::ADlkCharacter()
@@ -16,6 +17,10 @@ ADlkCharacter::ADlkCharacter()
 
 	// PawnExtComponent 생성
 	PawnExtComponent = CreateDefaultSubobject<UDlkPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+	{
+		PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
+		PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
+	}
 
 	// CameraComponent 생성
 	{
@@ -23,6 +28,25 @@ ADlkCharacter::ADlkCharacter()
 		CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 	}
 
+	// HealthComponent 생성
+	{
+		HealthComponent = CreateDefaultSubobject<UDlkHealthComponent>(TEXT("HealthComponent"));
+	}
+
+}
+
+void ADlkCharacter::OnAbilitySystemInitialized()
+{
+	UDlkAbilitySystemComponent* DlkASC = Cast<UDlkAbilitySystemComponent>(GetAbilitySystemComponent());
+	check(DlkASC);
+
+	// HealthComponent의 ASC를 통한 초기화
+	HealthComponent->InitializeWithAbilitySystem(DlkASC);
+}
+
+void ADlkCharacter::OnAbilitySystemUninitialized()
+{
+	HealthComponent->UninitializeWithAbilitySystem();
 }
 
 UAbilitySystemComponent* ADlkCharacter::GetAbilitySystemComponent() const

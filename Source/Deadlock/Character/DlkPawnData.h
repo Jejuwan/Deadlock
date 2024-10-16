@@ -32,6 +32,6 @@ public:
 	TObjectPtr<UDlkInputConfig> InputConfig;
 
 	/** 해당 Pawn의 Ability System에 허용할 AbilitySet */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hak|Abilities")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|Abilities")
 	TArray<TObjectPtr<UDlkAbilitySet>> AbilitySets;
 };

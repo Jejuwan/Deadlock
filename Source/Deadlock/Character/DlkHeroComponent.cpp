@@ -71,7 +71,7 @@ void UDlkHeroComponent::OnActorInitStateChanged(const FActorInitStateChangedPara
 
 	if (Params.FeatureName == UDlkPawnExtensionComponent::NAME_ActorFeatureName)
 	{
-		// HakPawnExtensionComponent의 DataInitialized 상태 변화 관찰 후, HakHeroComponent도 DataInitialized 상태로 변경
+		// DlkPawnExtensionComponent의 DataInitialized 상태 변화 관찰 후, DlkHeroComponent도 DataInitialized 상태로 변경
 		// - CanChangeInitState 확인
 		if (Params.FeatureState == InitTags.InitState_DataInitialized)
 		{
@@ -158,7 +158,7 @@ void UDlkHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Ma
 
 		if (bIsLocallyControlled && PawnData)
 		{
-			// 현재 HakCharacter에 Attach된 CameraComponent를 찾음
+			// 현재 DlkCharacter에 Attach된 CameraComponent를 찾음
 			if (UDlkCameraComponent* CameraComponent = UDlkCameraComponent::FindCameraComponent(Pawn))
 			{
 				CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
