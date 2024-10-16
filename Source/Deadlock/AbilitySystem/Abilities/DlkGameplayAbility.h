@@ -20,14 +20,28 @@ enum class EDlkAbilityActivationPolicy : uint8
 /**
  * 
  */
-UCLASS()
+
+ /** forward declarations */
+class UDlkAbilityCost;
+
+UCLASS(Abstract)
 class DEADLOCK_API UDlkGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 public:
 	UDlkGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	/**
+	 * UGameplayAbility interfaces
+	 */
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
 	/** 언제 GA가 활성화될지 정책 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|AbilityActivation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hak|AbilityActivation")
 	EDlkAbilityActivationPolicy ActivationPolicy;
+
+	/** ability costs to apply HakGameplayAbility separately */
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = Costs)
+	TArray<TObjectPtr<UDlkAbilityCost>> AdditionalCosts;
 };

@@ -19,6 +19,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeFromWeapon(UDlkWeaponInstance* InWeapon);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnWeaponInitialized();
+
 	/**
 	 * WeaponInstance/InventoryInstance를 상태 추적용으로 캐싱 목적
 	 */

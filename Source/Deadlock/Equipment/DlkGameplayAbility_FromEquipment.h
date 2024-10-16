@@ -7,6 +7,7 @@
 #include "DlkGameplayAbility_FromEquipment.generated.h"
 
 class UDlkEquipmentInstance;
+class UDlkInventoryItemInstance;
 /**
  * 
  */
@@ -15,5 +16,7 @@ class DEADLOCK_API UDlkGameplayAbility_FromEquipment : public UDlkGameplayAbilit
 {
 	GENERATED_BODY()
 public:
+
 	UDlkEquipmentInstance* GetAssociatedEquipment() const;
+	UDlkInventoryItemInstance* GetAssociatedItem() const;
 };

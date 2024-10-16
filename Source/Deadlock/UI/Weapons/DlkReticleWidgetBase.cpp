@@ -13,6 +13,8 @@ void UDlkReticleWidgetBase::InitializeFromWeapon(UDlkWeaponInstance* InWeapon)
 	InventoryInstance = nullptr;
 	if (WeaponInstance)
 	{
-		//InventoryInstance = Cast<UDlkInventoryItemInstance>(WeaponInstance->GetInstigator());
+		InventoryInstance = Cast<UDlkInventoryItemInstance>(WeaponInstance->GetInstigator());
 	}
+	OnWeaponInitialized();
 }
+

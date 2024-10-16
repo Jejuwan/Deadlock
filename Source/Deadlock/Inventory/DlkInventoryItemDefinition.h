@@ -6,6 +6,8 @@
 #include "UObject/NoExportTypes.h"
 #include "DlkInventoryItemDefinition.generated.h"
 
+class UDlkInventoryItemInstance;
+
 /**
  * Inventory에 대한 Fragment은 확 와닫지 않을 수 있다:
  * - Lyra에서 사용하는 예시를 통해 이해해보자:
@@ -19,6 +21,8 @@ class UDlkInventoryItemFragment : public UObject
 {
 	GENERATED_BODY()
 public:
+	/** interface to call when inventory item instance is added to UHakInventoryManagerComponent's InventoryList */
+	virtual void OnInstanceCreated(UDlkInventoryItemInstance* Instance) const {}
 };
 
 /**
