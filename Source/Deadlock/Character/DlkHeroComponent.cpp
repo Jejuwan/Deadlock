@@ -15,6 +15,7 @@
 #include "Deadlock/Character/DlkPawnData.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
+#include "GameFramework/Character.h"
 
 /** FeatureName 정의: static member variable 초기화 */
 const FName UDlkHeroComponent::NAME_ActorFeatureName("Hero");
@@ -267,6 +268,7 @@ void UDlkHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompon
 					// - 바인딩한 이후, Input 이벤트에 따라 멤버 함수가 트리거된다
 					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
 					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
+					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, false);
 				}
 			}
 		}
@@ -327,6 +329,17 @@ void UDlkHeroComponent::Input_LookMouse(const FInputActionValue& InputActionValu
 		// Y에는 Pitch 값!
 		double AimInversionValue = -Value.Y;
 		Pawn->AddControllerPitchInput(AimInversionValue);
+	}
+}
+
+void UDlkHeroComponent::Input_Jump(const FInputActionValue& InputActionValue)
+{
+	if (AActor* OwnerActor = GetOwner())
+	{
+		if (ACharacter* OwningCharacter = Cast<ACharacter>(OwnerActor))
+		{
+			OwningCharacter->Jump();
+		}
 	}
 }
 
