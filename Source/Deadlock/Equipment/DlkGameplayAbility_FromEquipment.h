@@ -17,6 +17,8 @@ class DEADLOCK_API UDlkGameplayAbility_FromEquipment : public UDlkGameplayAbilit
 	GENERATED_BODY()
 public:
 
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
 	UDlkEquipmentInstance* GetAssociatedEquipment() const;
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
 	UDlkInventoryItemInstance* GetAssociatedItem() const;
 };

@@ -30,10 +30,13 @@ public:
 	}
 
 	/** add/remove stack count to stat tag(=gameplay-tag stack) */
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
 
 	/** whether stat tag has in StatTags */
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool HasStatTag(FGameplayTag Tag) const;
 
 	/** get the current count of gameplay-tag stack */
