@@ -27,6 +27,10 @@ class DEADLOCK_API UDlkHeroComponent : public UPawnComponent, public IGameFramew
 public:
 	UDlkHeroComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	/** Returns the hero component if one exists on the specified actor. */
+	UFUNCTION(BlueprintPure, Category = "Dlk|Hero")
+	static UDlkHeroComponent* FindHeroComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UDlkHeroComponent>() : nullptr); }
+
 	/** FeatureName Á¤ÀÇ */
 	static const FName NAME_ActorFeatureName;
 

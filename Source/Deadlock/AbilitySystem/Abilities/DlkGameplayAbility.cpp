@@ -1,6 +1,12 @@
 #include "DlkGameplayAbility.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "DlkAbilityCost.h"
 #include "Deadlock/DlkGameplayTags.h"
+#include "Deadlock/Character/DlkCharacter.h"
+#include "Deadlock/Character/DlkHeroComponent.h"
+#include "Deadlock/Player/DlkPlayerController.h"
+#include "Deadlock/AbilitySystem//DlkAbilitySystemComponent.h"
+#include "Deadlock/AbilitySystem/Abilities/DlkAbilitySimpleFailureMessage.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkGameplayAbility)
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
@@ -11,6 +17,56 @@ UDlkGameplayAbility::UDlkGameplayAbility(const FObjectInitializer& ObjectInitial
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ActivationPolicy = EDlkAbilityActivationPolicy::OnInputTriggered;
+}
+
+UDlkAbilitySystemComponent* UDlkGameplayAbility::GetDlkAbilitySystemComponentFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<UDlkAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent.Get()) : nullptr);
+}
+
+ADlkPlayerController* UDlkGameplayAbility::GetDlkPlayerControllerFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<ADlkPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
+}
+
+AController* UDlkGameplayAbility::GetControllerFromActorInfo() const
+{
+	if (CurrentActorInfo)
+	{
+		if (AController* PC = CurrentActorInfo->PlayerController.Get())
+		{
+			return PC;
+		}
+
+		// Look for a player controller or pawn in the owner chain.
+		AActor* TestActor = CurrentActorInfo->OwnerActor.Get();
+		while (TestActor)
+		{
+			if (AController* C = Cast<AController>(TestActor))
+			{
+				return C;
+			}
+
+			if (APawn* Pawn = Cast<APawn>(TestActor))
+			{
+				return Pawn->GetController();
+			}
+
+			TestActor = TestActor->GetOwner();
+		}
+	}
+
+	return nullptr;
+}
+
+ADlkCharacter* UDlkGameplayAbility::GetDlkCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<ADlkCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+}
+
+UDlkHeroComponent* UDlkGameplayAbility::GetHeroComponentFromActorInfo() const
+{
+	return (CurrentActorInfo ? UDlkHeroComponent::FindHeroComponent(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 bool UDlkGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
@@ -51,35 +107,44 @@ void UDlkGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, con
 	}
 }
 
+void UDlkGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnGiveAbility(ActorInfo, Spec);
+
+	K2_OnAbilityAdded();
+
+	//TryActivateAbilityOnSpawn(ActorInfo, Spec);
+}
+
 void UDlkGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
 {
-	//bool bSimpleFailureFound = false;
-	//for (FGameplayTag Reason : FailedReason)
-	//{
-	//	if (!bSimpleFailureFound)
-	//	{
-	//		if (const FText* pUserFacingMessage = FailureTagToUserFacingMessages.Find(Reason))
-	//		{
-	//			FLyraAbilitySimpleFailureMessage Message;
-	//			Message.PlayerController = GetActorInfo().PlayerController.Get();
-	//			Message.FailureTags = FailedReason;
-	//			Message.UserFacingReason = *pUserFacingMessage;
+	bool bSimpleFailureFound = false;
+	for (FGameplayTag Reason : FailedReason)
+	{
+		if (!bSimpleFailureFound)
+		{
+			if (const FText* pUserFacingMessage = FailureTagToUserFacingMessages.Find(Reason))
+			{
+				FDlkAbilitySimpleFailureMessage Message;
+				Message.PlayerController = GetActorInfo().PlayerController.Get();
+				Message.FailureTags = FailedReason;
+				Message.UserFacingReason = *pUserFacingMessage;
 
-	//			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	//			MessageSystem.BroadcastMessage(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, Message);
-	//			bSimpleFailureFound = true;
-	//		}
-	//	}
+				UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+				MessageSystem.BroadcastMessage(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, Message);
+				bSimpleFailureFound = true;
+			}
+		}
 
-	//	if (UAnimMontage* pMontage = FailureTagToAnimMontage.FindRef(Reason))
-	//	{
-	//		FLyraAbilityMontageFailureMessage Message;
-	//		Message.PlayerController = GetActorInfo().PlayerController.Get();
-	//		Message.FailureTags = FailedReason;
-	//		Message.FailureMontage = pMontage;
+		if (UAnimMontage* pMontage = FailureTagToAnimMontage.FindRef(Reason))
+		{
+			FDlkAbilityMontageFailureMessage Message;
+			Message.PlayerController = GetActorInfo().PlayerController.Get();
+			Message.FailureTags = FailedReason;
+			Message.FailureMontage = pMontage;
 
-	//		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	//		MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
-	//	}
-	//}
+			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
+		}
+	}
 }

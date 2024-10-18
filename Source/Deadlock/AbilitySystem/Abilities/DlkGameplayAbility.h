@@ -23,6 +23,28 @@ enum class EDlkAbilityActivationPolicy : uint8
 
  /** forward declarations */
 class UDlkAbilityCost;
+class ADlkPlayerController;
+class ADlkCharacter;
+class UDlkHeroComponent;
+
+/** Failure reason that can be used to play an animation montage when a failure occurs */
+USTRUCT(BlueprintType)
+struct FDlkAbilityMontageFailureMessage
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<APlayerController> PlayerController = nullptr;
+
+	// All the reasons why this ability has failed
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTagContainer FailureTags;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UAnimMontage> FailureMontage = nullptr;
+};
 
 UCLASS(Abstract)
 class DEADLOCK_API UDlkGameplayAbility : public UGameplayAbility
@@ -31,6 +53,20 @@ class DEADLOCK_API UDlkGameplayAbility : public UGameplayAbility
 public:
 	UDlkGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	UDlkAbilitySystemComponent* GetDlkAbilitySystemComponentFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	ADlkPlayerController* GetDlkPlayerControllerFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	AController* GetControllerFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	ADlkCharacter* GetDlkCharacterFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	UDlkHeroComponent* GetHeroComponentFromActorInfo() const;
 	/**
 	 * UGameplayAbility interfaces
 	 */
@@ -38,12 +74,26 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	/** 언제 GA가 활성화될지 정책 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Hak|AbilityActivation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|AbilityActivation")
 	EDlkAbilityActivationPolicy ActivationPolicy;
 
 	/** ability costs to apply HakGameplayAbility separately */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = Costs)
 	TArray<TObjectPtr<UDlkAbilityCost>> AdditionalCosts;
+
+	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
+	{
+		NativeOnAbilityFailedToActivate(FailedReason);
+		ScriptOnAbilityFailedToActivate(FailedReason);
+	}
+protected:
+	//gameplayability interface
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+
+	/** Called when this ability is granted to the ability system component. */
+	UFUNCTION(BlueprintImplementableEvent, Category = Ability, DisplayName = "OnAbilityAdded")
+	void K2_OnAbilityAdded();
+
 
 protected:
 	// Called when the ability fails to activate

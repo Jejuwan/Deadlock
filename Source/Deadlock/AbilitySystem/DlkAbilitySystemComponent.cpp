@@ -143,3 +143,32 @@ void UDlkAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGame
 	InputPressedSpecHandles.Reset();
 	InputReleasedSpecHandles.Reset();
 }
+
+void UDlkAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+{
+	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
+
+	/*if (APawn* Avatar = Cast<APawn>(GetAvatarActor()))
+	{
+		if (!Avatar->IsLocallyControlled() && Ability->IsSupportedForNetworking())
+		{
+			ClientNotifyAbilityFailed(Ability, FailureReason);
+			return;
+		}
+	}*/
+
+	HandleAbilityFailed(Ability, FailureReason);
+}
+
+//void UDlkAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+//{
+//	HandleAbilityFailed(Ability, FailureReason);
+//}
+
+void UDlkAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+{
+	if (const UDlkGameplayAbility* LyraAbility = Cast<const UDlkGameplayAbility>(Ability))
+	{
+		LyraAbility->OnAbilityFailedToActivate(FailureReason);
+	}
+}
