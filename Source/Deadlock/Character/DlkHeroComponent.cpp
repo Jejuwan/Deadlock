@@ -53,7 +53,7 @@ void UDlkHeroComponent::BeginPlay()
 	BindOnActorInitStateChanged(UDlkPawnExtensionComponent::NAME_ActorFeatureName, FGameplayTag(), false);
 
 	// InitState_Spawned로 초기화
-	ensure(TryToChangeInitState(FDlkGameplayTags::Get().InitState_Spawned));
+	ensure(TryToChangeInitState(DlkGameplayTags::InitState_Spawned));
 
 	// ForceUpdate 진행
 	CheckDefaultInitialization();
@@ -68,13 +68,11 @@ void UDlkHeroComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UDlkHeroComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
 {
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
-
 	if (Params.FeatureName == UDlkPawnExtensionComponent::NAME_ActorFeatureName)
 	{
 		// DlkPawnExtensionComponent의 DataInitialized 상태 변화 관찰 후, DlkHeroComponent도 DataInitialized 상태로 변경
 		// - CanChangeInitState 확인
-		if (Params.FeatureState == InitTags.InitState_DataInitialized)
+		if (Params.FeatureState == DlkGameplayTags::InitState_DataInitialized)
 		{
 			CheckDefaultInitialization();
 		}
@@ -85,12 +83,11 @@ bool UDlkHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manag
 {
 	check(Manager);
 
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
 	APawn* Pawn = GetPawn<APawn>();
 	ADlkPlayerState* DlkPS = GetPlayerState<ADlkPlayerState>();
 
 	// Spawned 초기화
-	if (!CurrentState.IsValid() && DesiredState == InitTags.InitState_Spawned)
+	if (!CurrentState.IsValid() && DesiredState == DlkGameplayTags::InitState_Spawned)
 	{
 		if (Pawn)
 		{
@@ -99,7 +96,7 @@ bool UDlkHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manag
 	}
 
 	// Spawned -> DataAvailable
-	if (CurrentState == InitTags.InitState_Spawned && DesiredState == InitTags.InitState_DataAvailable)
+	if (CurrentState == DlkGameplayTags::InitState_Spawned && DesiredState == DlkGameplayTags::InitState_DataAvailable)
 	{
 		if (!DlkPS)
 		{
@@ -110,14 +107,14 @@ bool UDlkHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manag
 	}
 
 	// DataAvailable -> DataInitialized
-	if (CurrentState == InitTags.InitState_DataAvailable && DesiredState == InitTags.InitState_DataInitialized)
+	if (CurrentState == DlkGameplayTags::InitState_DataAvailable && DesiredState == DlkGameplayTags::InitState_DataInitialized)
 	{
 		// PawnExtensionComponent가 DataInitialized될 때까지 기다림 (== 모든 Feature Component가 DataAvailable인 상태)
-		return DlkPS && Manager->HasFeatureReachedInitState(Pawn, UDlkPawnExtensionComponent::NAME_ActorFeatureName, InitTags.InitState_DataInitialized);
+		return DlkPS && Manager->HasFeatureReachedInitState(Pawn, UDlkPawnExtensionComponent::NAME_ActorFeatureName, DlkGameplayTags::InitState_DataInitialized);
 	}
 
 	// DataInitialized -> GameplayReady
-	if (CurrentState == InitTags.InitState_DataInitialized && DesiredState == InitTags.InitState_GameplayReady)
+	if (CurrentState == DlkGameplayTags::InitState_DataInitialized && DesiredState == DlkGameplayTags::InitState_GameplayReady)
 	{
 		return true;
 	}
@@ -127,10 +124,8 @@ bool UDlkHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manag
 PRAGMA_DISABLE_OPTIMIZATION
 void UDlkHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
-
 	// DataAvailable -> DataInitialized 단계
-	if (CurrentState == InitTags.InitState_DataAvailable && DesiredState == InitTags.InitState_DataInitialized)
+	if (CurrentState == DlkGameplayTags::InitState_DataAvailable && DesiredState == DlkGameplayTags::InitState_DataInitialized)
 	{
 		APawn* Pawn = GetPawn<APawn>();
 		ADlkPlayerState* DlkPS = GetPlayerState<ADlkPlayerState>();
@@ -182,8 +177,7 @@ void UDlkHeroComponent::CheckDefaultInitialization()
 	// 앞서 BindOnActorInitStateChanged에서 보았듯이 Hero Feature는 Pawn Extension Feature에 종속되어 있으므로, CheckDefaultInitializationForImplementers 호출하지 않음:
 
 	// ContinueInitStateChain은 앞서 PawnExtComponent와 같음
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
-	static const TArray<FGameplayTag> StateChain = { InitTags.InitState_Spawned, InitTags.InitState_DataAvailable, InitTags.InitState_DataInitialized, InitTags.InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { DlkGameplayTags::InitState_Spawned, DlkGameplayTags::InitState_DataAvailable, DlkGameplayTags::InitState_DataInitialized, DlkGameplayTags::InitState_GameplayReady };
 	ContinueInitStateChain(StateChain);
 }
 
@@ -240,8 +234,6 @@ void UDlkHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompon
 		{
 			if (const UDlkInputConfig* InputConfig = PawnData->InputConfig)
 			{
-				const FDlkGameplayTags& GameplayTags = FDlkGameplayTags::Get();
-
 				// HeroComponent 가지고 있는 Input Mapping Context를 순회하며, EnhancedInputLocalPlayerSubsystem에 추가한다
 				for (const FDlkMappableConfigPair& Pair : DefaultInputConfigs)
 				{
@@ -266,9 +258,9 @@ void UDlkHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCompon
 					}
 					// InputTag_Move와 InputTag_Look_Mouse에 대해 각각 Input_Move()와 Input_LookMouse() 멤버 함수에 바인딩시킨다:
 					// - 바인딩한 이후, Input 이벤트에 따라 멤버 함수가 트리거된다
-					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
-					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
-					DlkIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, false);
+					DlkIC->BindNativeAction(InputConfig, DlkGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
+					DlkIC->BindNativeAction(InputConfig, DlkGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
+					DlkIC->BindNativeAction(InputConfig, DlkGameplayTags::InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, false);
 				}
 			}
 		}

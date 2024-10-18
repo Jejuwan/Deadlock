@@ -13,12 +13,10 @@ void UDlkGameInstance::Init()
 	UGameFrameworkComponentManager* ComponentManager = GetSubsystem<UGameFrameworkComponentManager>(this);
 	if (ensure(ComponentManager))
 	{
-		const FDlkGameplayTags& GameplayTags = FDlkGameplayTags::Get();
-
-		ComponentManager->RegisterInitState(GameplayTags.InitState_Spawned, false, FGameplayTag());
-		ComponentManager->RegisterInitState(GameplayTags.InitState_DataAvailable, false, GameplayTags.InitState_Spawned);
-		ComponentManager->RegisterInitState(GameplayTags.InitState_DataInitialized, false, GameplayTags.InitState_DataAvailable);
-		ComponentManager->RegisterInitState(GameplayTags.InitState_GameplayReady, false, GameplayTags.InitState_DataInitialized);
+		ComponentManager->RegisterInitState(DlkGameplayTags::InitState_Spawned, false, FGameplayTag());
+		ComponentManager->RegisterInitState(DlkGameplayTags::InitState_DataAvailable, false, DlkGameplayTags::InitState_Spawned);
+		ComponentManager->RegisterInitState(DlkGameplayTags::InitState_DataInitialized, false, DlkGameplayTags::InitState_DataAvailable);
+		ComponentManager->RegisterInitState(DlkGameplayTags::InitState_GameplayReady, false, DlkGameplayTags::InitState_DataInitialized);
 	}
 }
 

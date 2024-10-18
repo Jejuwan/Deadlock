@@ -44,4 +44,25 @@ public:
 	/** ability costs to apply HakGameplayAbility separately */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = Costs)
 	TArray<TObjectPtr<UDlkAbilityCost>> AdditionalCosts;
+
+protected:
+	// Called when the ability fails to activate
+	virtual void NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
+
+	// Called when the ability fails to activate
+	UFUNCTION(BlueprintImplementableEvent)
+	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
+
+protected:
+	// Map of failure tags to simple error messages
+	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
+	TMap<FGameplayTag, FText> FailureTagToUserFacingMessages;
+
+	// Map of failure tags to anim montages that should be played with them
+	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
+	TMap<FGameplayTag, TObjectPtr<UAnimMontage>> FailureTagToAnimMontage;
+
+	// If true, extra information should be logged when this ability is canceled. This is temporary, used for tracking a bug.
+	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
+	bool bLogCancelation;
 };

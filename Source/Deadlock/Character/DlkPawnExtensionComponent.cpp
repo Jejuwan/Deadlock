@@ -145,7 +145,7 @@ void UDlkPawnExtensionComponent::BeginPlay()
 	//   2. HandleChangeInitState로 내부 상태 변경 (Feature Component)
 	//   3. BindOnActorInitStateChanged로 Bind된 Delegate를 조건에 맞게 호출해 줌
 	//      - DlkPawnExtensionComponent의 경우, 모든 Actor의 Feature 상태 변화에 대해 OnActorInitStateChanged()가 호출됨
-	ensure(TryToChangeInitState(FDlkGameplayTags::Get().InitState_Spawned));
+	ensure(TryToChangeInitState(DlkGameplayTags::InitState_Spawned));
 
 	// 해당 함수는 우리가 오버라이딩 한다:
 	// - 이 함수를 ForceUpdateInitState와 같은 느낌으로 이해해주면 된다 
@@ -167,8 +167,7 @@ void UDlkPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateCh
 	{
 		// DlkPawnExtensionComponent는 다른 Feature Component들의 상태가 DataAvailable를 관찰하여, Sync를 맞추는 구간이 있었다 (CanChangeInitState)
 		// - 이를 가능케하기 위해, OnActorInitStateChanged에서는 DataAvailable에 대해 지속적으로 CheckDefaultInitialization을 호출하여, 상태를 확인한다
-		const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
-		if (Params.FeatureState == InitTags.InitState_DataAvailable)
+		if (Params.FeatureState == DlkGameplayTags::InitState_DataAvailable)
 		{
 			CheckDefaultInitialization();
 		}
@@ -180,10 +179,9 @@ bool UDlkPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManag
 	check(Manager);
 
 	APawn* Pawn = GetPawn<APawn>();
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
 
 	// InitState_Spawned 초기화
-	if (!CurrentState.IsValid() && DesiredState == InitTags.InitState_Spawned)
+	if (!CurrentState.IsValid() && DesiredState == DlkGameplayTags::InitState_Spawned)
 	{
 		// Pawn이 잘 세팅만 되어있으면 바로 Spawned로 넘어감!
 		if (Pawn)
@@ -193,7 +191,7 @@ bool UDlkPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManag
 	}
 
 	// Spawned -> DataAvailable
-	if (CurrentState == InitTags.InitState_Spawned && DesiredState == InitTags.InitState_DataAvailable)
+	if (CurrentState == DlkGameplayTags::InitState_Spawned && DesiredState == DlkGameplayTags::InitState_DataAvailable)
 	{
 		// 아마 PawnData를 누군가 설정하는 모양이다
 		if (!PawnData)
@@ -215,15 +213,15 @@ bool UDlkPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManag
 	}
 
 	// DataAvailable -> DataInitialized
-	if (CurrentState == InitTags.InitState_DataAvailable && DesiredState == InitTags.InitState_DataInitialized)
+	if (CurrentState == DlkGameplayTags::InitState_DataAvailable && DesiredState == DlkGameplayTags::InitState_DataInitialized)
 	{
 		// Actor에 바인드된 모든 Feature들이 DataAvailable 상태일 때, DataInitialized로 넘어감:
 		// - HaveAllFeaturesReachedInitState 확인
-		return Manager->HaveAllFeaturesReachedInitState(Pawn, InitTags.InitState_DataAvailable);
+		return Manager->HaveAllFeaturesReachedInitState(Pawn, DlkGameplayTags::InitState_DataAvailable);
 	}
 
 	// DataInitialized -> GameplayReady
-	if (CurrentState == InitTags.InitState_DataInitialized && DesiredState == InitTags.InitState_GameplayReady)
+	if (CurrentState == DlkGameplayTags::InitState_DataInitialized && DesiredState == DlkGameplayTags::InitState_GameplayReady)
 	{
 		return true;
 	}
@@ -240,10 +238,8 @@ void UDlkPawnExtensionComponent::CheckDefaultInitialization()
 	// - 간단히 CheckDefaultInitializationForImplementers 보자:
 	CheckDefaultInitializationForImplementers();
 
-	const FDlkGameplayTags& InitTags = FDlkGameplayTags::Get();
-
 	// 사용자 정의 InitState를 직접 넘겨줘야 한다... (사실 이건 좀 알아서 할 수 있을거 같은데 굳이...)
-	static const TArray<FGameplayTag> StateChain = { InitTags.InitState_Spawned, InitTags.InitState_DataAvailable, InitTags.InitState_DataInitialized, InitTags.InitState_GameplayReady };
+	static const TArray<FGameplayTag> StateChain = { DlkGameplayTags::InitState_Spawned, DlkGameplayTags::InitState_DataAvailable, DlkGameplayTags::InitState_DataInitialized, DlkGameplayTags::InitState_GameplayReady };
 
 	// CanChangeInitState()와 HandleChangeInitState() 그리고 ChangeFeatureInitState 호출을 통한 OnActorInitStateChanged Delegate 호출까지 진행해준다:
 	// 아래의 코드를 간단히 보자:
