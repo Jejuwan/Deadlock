@@ -9,6 +9,18 @@
 #include "Deadlock/System/DlkAssetManager.h"
 #include "DlkExperienceActionSet.h"
 
+void UDlkExperienceManagerComponent::CallOrRegister_OnExperienceLoaded_HighPriority(FOnDlkExperienceLoaded::FDelegate&& Delegate)
+{
+	if (IsExperienceLoaded())
+	{
+		Delegate.Execute(CurrentExperience);
+	}
+	else
+	{
+		OnExperienceLoaded_HighPriority.Add(MoveTemp(Delegate));
+	}
+}
+
 void UDlkExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnDlkExperienceLoaded::FDelegate&& Delegate)
 {
 	// IsExperienceLoaded() 구현
@@ -27,6 +39,18 @@ void UDlkExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FOnDlkExp
 		 * a는 delegate_type 내부에 new로 할당되어 있다. 복사 비용을 낮추기 위해 Move를 통해 하는 것을 잊지 말자!
 		 */
 		OnExperienceLoaded.Add(MoveTemp(Delegate));
+	}
+}
+
+void UDlkExperienceManagerComponent::CallOrRegister_OnExperienceLoaded_LowPriority(FOnDlkExperienceLoaded::FDelegate&& Delegate)
+{
+	if (IsExperienceLoaded())
+	{
+		Delegate.Execute(CurrentExperience);
+	}
+	else
+	{
+		OnExperienceLoaded_LowPriority.Add(MoveTemp(Delegate));
 	}
 }
 
@@ -234,8 +258,14 @@ void UDlkExperienceManagerComponent::OnExperienceFullLoadCompleted()
 	}
 
 	LoadState = EDlkExperienceLoadState::Loaded;
+	OnExperienceLoaded_HighPriority.Broadcast(CurrentExperience);
+	OnExperienceLoaded_HighPriority.Clear();
+
 	OnExperienceLoaded.Broadcast(CurrentExperience);
 	OnExperienceLoaded.Clear();
+
+	OnExperienceLoaded_LowPriority.Broadcast(CurrentExperience);
+	OnExperienceLoaded_LowPriority.Clear();
 }
 
 const UDlkExperienceDefinition* UDlkExperienceManagerComponent::GetCurrentExperienceChecked() const

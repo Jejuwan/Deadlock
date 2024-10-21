@@ -8,3 +8,23 @@ ADlkGameState::ADlkGameState()
 {
 	ExperienceManagerComponent = CreateDefaultSubobject<UDlkExperienceManagerComponent>(TEXT("ExperienceManagerComponent"));
 }
+
+void ADlkGameState::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+}
+
+void ADlkGameState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
+void ADlkGameState::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+}
+
+void ADlkGameState::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}

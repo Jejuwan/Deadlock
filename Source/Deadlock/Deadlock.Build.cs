@@ -13,7 +13,9 @@ public class Deadlock : ModuleRules
 		"CoreUObject",
 		"Engine",
 		"InputCore",
-		"EnhancedInput",
+        "PhysicsCore",
+        "AIModule",
+        "EnhancedInput",
 		//Gas
 		"GameplayTags",
 		"GameplayTasks",
@@ -33,7 +35,7 @@ public class Deadlock : ModuleRules
 		"UIExtension",
 		"Slate",
 		"SlateCore",
-		});
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
         "GameplayMessageRuntime",

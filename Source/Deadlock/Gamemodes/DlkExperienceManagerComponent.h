@@ -40,7 +40,15 @@ public:
 	/**
  * 아래의 OnExperienceLoaded에 바인딩하거나, 이미 Experience 로딩이 완료되었다면 바로 호출함
  */
+	void CallOrRegister_OnExperienceLoaded_HighPriority(FOnDlkExperienceLoaded::FDelegate&& Delegate);
+
+	// Ensures the delegate is called once the experience has been loaded
+	// If the experience has already loaded, calls the delegate immediately
 	void CallOrRegister_OnExperienceLoaded(FOnDlkExperienceLoaded::FDelegate&& Delegate);
+
+	// Ensures the delegate is called once the experience has been loaded
+	// If the experience has already loaded, calls the delegate immediately
+	void CallOrRegister_OnExperienceLoaded_LowPriority(FOnDlkExperienceLoaded::FDelegate&& Delegate);
 
 	void ServerSetCurrentExperience(FPrimaryAssetId ExperienceId);
 	void StartExperienceLoad();
@@ -56,7 +64,14 @@ public:
 	EDlkExperienceLoadState LoadState = EDlkExperienceLoadState::Unloaded;
 
 	/** Experience 로딩이 완료된 이후, Broadcasting Delegate */
+
+	FOnDlkExperienceLoaded OnExperienceLoaded_HighPriority;
+
+	/** Delegate called when the experience has finished loading */
 	FOnDlkExperienceLoaded OnExperienceLoaded;
+
+	/** Delegate called when the experience has finished loading */
+	FOnDlkExperienceLoaded OnExperienceLoaded_LowPriority;
 
 	/** 활성화된 GameFeature Plugin들 */
 	int32 NumGameFeaturePluginsLoading = 0;
