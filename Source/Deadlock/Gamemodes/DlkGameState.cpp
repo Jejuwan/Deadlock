@@ -2,10 +2,13 @@
 
 
 #include "DlkGameState.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/Gamemodes/DlkExperienceManagerComponent.h"
 
-ADlkGameState::ADlkGameState()
+ADlkGameState::ADlkGameState(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UDlkAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	ExperienceManagerComponent = CreateDefaultSubobject<UDlkExperienceManagerComponent>(TEXT("ExperienceManagerComponent"));
 }
 
@@ -17,6 +20,9 @@ void ADlkGameState::PreInitializeComponents()
 void ADlkGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	check(AbilitySystemComponent);
+	AbilitySystemComponent->InitAbilityActorInfo(/*Owner=*/ this, /*Avatar=*/ this);
 }
 
 void ADlkGameState::EndPlay(const EEndPlayReason::Type EndPlayReason)

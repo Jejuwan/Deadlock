@@ -8,6 +8,7 @@
 #include "DlkGameState.generated.h"
 
 class UDlkExperienceManagerComponent;
+class UDlkAbilitySystemComponent;
 /**
  * 
  */
@@ -16,7 +17,7 @@ class DEADLOCK_API ADlkGameState : public AModularGameStateBase
 {
 	GENERATED_BODY()
 public:
-	ADlkGameState();
+	ADlkGameState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	//~AActor interface
 	virtual void PreInitializeComponents() override;
@@ -28,5 +29,10 @@ public:
 public:
 	UPROPERTY()
 	TObjectPtr<UDlkExperienceManagerComponent> ExperienceManagerComponent;
+
+private:
+	// The ability system component subobject for game-wide things (primarily gameplay cues)
+	UPROPERTY(VisibleAnywhere, Category = "Dlk|GameState")
+	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
 
 };

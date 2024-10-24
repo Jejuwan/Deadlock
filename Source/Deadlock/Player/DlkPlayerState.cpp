@@ -13,6 +13,8 @@
 ADlkPlayerState::ADlkPlayerState(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UDlkAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	CreateDefaultSubobject<UDlkHealthSet>(TEXT("HealthSet"));
 	CreateDefaultSubobject<UDlkCombatSet>(TEXT("CombatSet"));

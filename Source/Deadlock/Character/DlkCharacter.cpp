@@ -8,12 +8,17 @@
 #include "DlkHealthComponent.h"
 
 // Sets default values
-ADlkCharacter::ADlkCharacter()
+ADlkCharacter::ADlkCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	// Tick을 비활성화
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UDlkAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	// PawnExtComponent 생성
 	PawnExtComponent = CreateDefaultSubobject<UDlkPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
@@ -76,5 +81,13 @@ void ADlkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PawnExtComponent->SetupPlayerInputComponent();
 
+}
+
+void ADlkCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	check(AbilitySystemComponent); 
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 

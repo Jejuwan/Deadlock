@@ -46,7 +46,7 @@ void UDlkPawnExtensionComponent::SetupPlayerInputComponent()
 void UDlkPawnExtensionComponent::InitializeAbilitySystem(UDlkAbilitySystemComponent* InASC, AActor* InOwnerActor)
 {
 	check(InASC && InOwnerActor);
-
+	
 	if (AbilitySystemComponent == InASC)
 	{
 		return;
