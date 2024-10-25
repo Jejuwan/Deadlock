@@ -43,6 +43,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Dlk")
 	void SetActiveSlotIndex(int32 NewIndex);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	UDlkInventoryItemInstance* GetActiveSlotItem() const;
+
 	/** HUD QuickBar Slot °¹¼ö */
 	UPROPERTY()
 	int32 NumSlots = 3;

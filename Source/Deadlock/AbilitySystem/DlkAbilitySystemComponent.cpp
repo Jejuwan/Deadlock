@@ -24,9 +24,9 @@ void UDlkAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AAct
 
 	if (bHasNewPawnAvatar)
 	{
-		if (UDlkAnimInstance* LyraAnimInst = Cast<UDlkAnimInstance>(ActorInfo->GetAnimInstance()))
+		if (UDlkAnimInstance* DlkAnimInst = Cast<UDlkAnimInstance>(ActorInfo->GetAnimInstance()))
 		{
-			LyraAnimInst->InitializeWithAbilitySystem(this);
+			DlkAnimInst->InitializeWithAbilitySystem(this);
 		}
 	}
 }
@@ -167,8 +167,8 @@ void UDlkAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecH
 
 void UDlkAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
 {
-	if (const UDlkGameplayAbility* LyraAbility = Cast<const UDlkGameplayAbility>(Ability))
+	if (const UDlkGameplayAbility* DlkAbility = Cast<const UDlkGameplayAbility>(Ability))
 	{
-		LyraAbility->OnAbilityFailedToActivate(FailureReason);
+		DlkAbility->OnAbilityFailedToActivate(FailureReason);
 	}
 }

@@ -26,7 +26,7 @@
 
  /**
   * DlkAttributeSet
-  * - Lyra와 마찬가지로 Dlk에서 메인 Attribute Set Class이다
+  * - Dlk와 마찬가지로 Dlk에서 메인 Attribute Set Class이다
   */
 UCLASS()
 class DEADLOCK_API UDlkAttributeSet : public UAttributeSet

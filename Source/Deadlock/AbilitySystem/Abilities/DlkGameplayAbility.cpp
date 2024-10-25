@@ -5,8 +5,11 @@
 #include "Deadlock/Character/DlkCharacter.h"
 #include "Deadlock/Character/DlkHeroComponent.h"
 #include "Deadlock/Player/DlkPlayerController.h"
-#include "Deadlock/AbilitySystem//DlkAbilitySystemComponent.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/AbilitySystem/Abilities/DlkAbilitySimpleFailureMessage.h"
+#include "Deadlock/AbilitySystem/DlkAbilitySourceInterface.h"
+#include "Deadlock/AbilitySystem/DlkGameplayEffectContext.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkGameplayAbility)
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
@@ -105,6 +108,45 @@ void UDlkGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, con
 			AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 		}
 	}
+}
+
+FGameplayEffectContextHandle UDlkGameplayAbility::MakeEffectContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	FGameplayEffectContextHandle ContextHandle = Super::MakeEffectContext(Handle, ActorInfo);
+
+	FDlkGameplayEffectContext* EffectContext = FDlkGameplayEffectContext::ExtractEffectContext(ContextHandle);
+	check(EffectContext);
+
+	check(ActorInfo);
+
+	AActor* EffectCauser = nullptr;
+	const IDlkAbilitySourceInterface* AbilitySource = nullptr;
+	float SourceLevel = 0.0f;
+	GetAbilitySource(Handle, ActorInfo, /*out*/ SourceLevel, /*out*/ AbilitySource, /*out*/ EffectCauser);
+
+	UObject* SourceObject = GetSourceObject(Handle, ActorInfo);
+
+	AActor* Instigator = ActorInfo ? ActorInfo->OwnerActor.Get() : nullptr;
+
+	EffectContext->SetAbilitySource(AbilitySource, SourceLevel);
+	EffectContext->AddInstigator(Instigator, EffectCauser);
+	EffectContext->AddSourceObject(SourceObject);
+
+	return ContextHandle;
+}
+
+void UDlkGameplayAbility::GetAbilitySource(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& OutSourceLevel, const IDlkAbilitySourceInterface*& OutAbilitySource, AActor*& OutEffectCauser) const
+{
+	OutSourceLevel = 0.0f;
+	OutAbilitySource = nullptr;
+	OutEffectCauser = nullptr;
+
+	OutEffectCauser = ActorInfo->AvatarActor.Get();
+
+	// If we were added by something that's an ability info source, use it
+	UObject* SourceObject = GetSourceObject(Handle, ActorInfo);
+
+	OutAbilitySource = Cast<IDlkAbilitySourceInterface>(SourceObject);
 }
 
 void UDlkGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

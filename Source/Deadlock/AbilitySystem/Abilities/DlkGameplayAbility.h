@@ -26,6 +26,7 @@ class UDlkAbilityCost;
 class ADlkPlayerController;
 class ADlkCharacter;
 class UDlkHeroComponent;
+class IDlkAbilitySourceInterface;
 
 /** Failure reason that can be used to play an animation montage when a failure occurs */
 USTRUCT(BlueprintType)
@@ -72,6 +73,11 @@ public:
 	 */
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+	virtual FGameplayEffectContextHandle MakeEffectContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override;
+
+
+	virtual void GetAbilitySource(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& OutSourceLevel, const IDlkAbilitySourceInterface*& OutAbilitySource, AActor*& OutEffectCauser) const;
+
 
 	/** 언제 GA가 활성화될지 정책 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|AbilityActivation")

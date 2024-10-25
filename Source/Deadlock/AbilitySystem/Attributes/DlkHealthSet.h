@@ -24,6 +24,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UDlkHealthSet, Health);
 	ATTRIBUTE_ACCESSORS(UDlkHealthSet, MaxHealth);
 	ATTRIBUTE_ACCESSORS(UDlkHealthSet, Healing);
+	ATTRIBUTE_ACCESSORS(UDlkHealthSet, Damage);
 
 	/**
 	* Attribute의 값을 ClampAttribute()를 활용하여, 값의 범위를 유지시켜주기 위해
@@ -51,4 +52,7 @@ public:
 	/** 체력 회복치 */
 	UPROPERTY(BlueprintReadOnly, Category = "Dlk|Health")
 	FGameplayAttributeData Healing;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Dlk|Health")
+	FGameplayAttributeData Damage;
 };

@@ -110,3 +110,8 @@ void UDlkQuickBarComponent::SetActiveSlotIndex(int32 NewIndex)
 		EquipItemInSlot();
 	}
 }
+
+UDlkInventoryItemInstance* UDlkQuickBarComponent::GetActiveSlotItem() const
+{
+	return Slots.IsValidIndex(ActiveSlotIndex) ? Slots[ActiveSlotIndex] : nullptr;
+}
