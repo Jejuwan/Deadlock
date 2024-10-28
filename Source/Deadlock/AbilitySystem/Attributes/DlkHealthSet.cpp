@@ -44,7 +44,29 @@ void UDlkHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackDa
 	Super::PostGameplayEffectExecute(Data);
 
 	float MinimumHealth = 0.0f;
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		// Send a standardized verb message that other systems can observe
+		//if (Data.EvaluatedData.Magnitude > 0.0f)
+		//{
+		//	FLyraVerbMessage Message;
+		//	Message.Verb = TAG_Lyra_Damage_Message;
+		//	Message.Instigator = Data.EffectSpec.GetEffectContext().GetEffectCauser();
+		//	Message.InstigatorTags = *Data.EffectSpec.CapturedSourceTags.GetAggregatedTags();
+		//	Message.Target = GetOwningActor();
+		//	Message.TargetTags = *Data.EffectSpec.CapturedTargetTags.GetAggregatedTags();
+		//	//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
+		//	//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
+		//	Message.Magnitude = Data.EvaluatedData.Magnitude;
 
+		//	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+		//	MessageSystem.BroadcastMessage(Message.Verb, Message);
+		//}
+
+		// Convert into -Health and then clamp
+		SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
+		SetDamage(0.0f);
+	}
 	// *** Healing이 업데이트 될 경우, Healing을 Health에 적용하고, Healing을 초기화해준다
 	if (Data.EvaluatedData.Attribute == GetHealingAttribute())
 	{

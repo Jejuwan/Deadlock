@@ -35,6 +35,7 @@ public class Deadlock : ModuleRules
 		"UIExtension",
 		"Slate",
 		"SlateCore",
+        "Niagara",
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {

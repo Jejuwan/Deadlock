@@ -11,6 +11,17 @@ ADlkPlayerController::ADlkPlayerController(const FObjectInitializer& ObjectIniti
 	PlayerCameraManagerClass = ADlkPlayerCameraManager::StaticClass();
 }
 
+void ADlkPlayerController::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+}
+
+void ADlkPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	SetActorHiddenInGame(false);
+}
+
 void ADlkPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
 	// 우선 PostProcessInput()가 언제 호출되는지 확인해보자:

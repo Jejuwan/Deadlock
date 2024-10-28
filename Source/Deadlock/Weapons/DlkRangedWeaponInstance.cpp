@@ -2,6 +2,7 @@
 
 
 #include "DlkRangedWeaponInstance.h"
+#include "Deadlock/Physics/PhysicalMaterialWithTags.h"
 
 float UDlkRangedWeaponInstance::GetDistanceAttenuation(float Distance, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const
 {
@@ -12,7 +13,7 @@ float UDlkRangedWeaponInstance::GetDistanceAttenuation(float Distance, const FGa
 float UDlkRangedWeaponInstance::GetPhysicalMaterialAttenuation(const UPhysicalMaterial* PhysicalMaterial, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const
 {
 	float CombinedMultiplier = 1.0f;
-	/*if (const UPhysicalMaterialWithTags* PhysMatWithTags = Cast<const UPhysicalMaterialWithTags>(PhysicalMaterial))
+	if (const UPhysicalMaterialWithTags* PhysMatWithTags = Cast<const UPhysicalMaterialWithTags>(PhysicalMaterial))
 	{
 		for (const FGameplayTag MaterialTag : PhysMatWithTags->Tags)
 		{
@@ -21,7 +22,7 @@ float UDlkRangedWeaponInstance::GetPhysicalMaterialAttenuation(const UPhysicalMa
 				CombinedMultiplier *= *pTagMultiplier;
 			}
 		}
-	}*/
+	}
 
 	return CombinedMultiplier;
 }

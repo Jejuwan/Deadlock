@@ -17,6 +17,10 @@ class DEADLOCK_API ADlkPlayerController : public ACommonPlayerController
 	GENERATED_BODY()
 	
 	ADlkPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	//~AActor interface
+	virtual void PreInitializeComponents() override;
+	virtual void BeginPlay() override;
 	/**
 		* PlayerController interface
 		*/
