@@ -100,6 +100,30 @@ void UDlkQuickBarComponent::AddItemToSlot(int32 SlotIndex, UDlkInventoryItemInst
 	}
 }
 
+UDlkInventoryItemInstance* UDlkQuickBarComponent::RemoveItemFromSlot(int32 SlotIndex)
+{
+	UDlkInventoryItemInstance* Result = nullptr;
+
+	if (ActiveSlotIndex == SlotIndex)
+	{
+		UnequipItemInSlot();
+		ActiveSlotIndex = -1;
+	}
+
+	if (Slots.IsValidIndex(SlotIndex))
+	{
+		Result = Slots[SlotIndex];
+
+		if (Result != nullptr)
+		{
+			Slots[SlotIndex] = nullptr;
+			//OnRep_Slots();
+		}
+	}
+
+	return Result;
+}
+
 void UDlkQuickBarComponent::SetActiveSlotIndex(int32 NewIndex)
 {
 	if (Slots.IsValidIndex(NewIndex) && (ActiveSlotIndex != NewIndex))

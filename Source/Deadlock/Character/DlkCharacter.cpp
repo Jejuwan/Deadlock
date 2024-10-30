@@ -2,6 +2,8 @@
 
 
 #include "DlkCharacter.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "DlkPawnExtensionComponent.h"
 #include "Deadlock/Camera/DlkCameraComponent.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
@@ -36,6 +38,8 @@ ADlkCharacter::ADlkCharacter(const FObjectInitializer& ObjectInitializer)
 	// HealthComponent »ý¼º
 	{
 		HealthComponent = CreateDefaultSubobject<UDlkHealthComponent>(TEXT("HealthComponent"));
+		HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
+		HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 	}
 
 }
@@ -52,6 +56,11 @@ void ADlkCharacter::OnAbilitySystemInitialized()
 void ADlkCharacter::OnAbilitySystemUninitialized()
 {
 	HealthComponent->UninitializeWithAbilitySystem();
+}
+
+UDlkAbilitySystemComponent* ADlkCharacter::GetDlkAbilitySystemComponent() const
+{
+	return Cast<UDlkAbilitySystemComponent>(GetAbilitySystemComponent());
 }
 
 UAbilitySystemComponent* ADlkCharacter::GetAbilitySystemComponent() const
@@ -89,5 +98,59 @@ void ADlkCharacter::PostInitializeComponents()
 
 	check(AbilitySystemComponent); 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+}
+
+void ADlkCharacter::OnDeathStarted(AActor* OwningActor)
+{
+	DisableMovementAndCollision();
+}
+
+void ADlkCharacter::OnDeathFinished(AActor* OwningActor)
+{
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::DestroyDueToDeath);
+}
+
+void ADlkCharacter::DisableMovementAndCollision()
+{
+	if (Controller)
+	{
+		Controller->SetIgnoreMoveInput(true);
+	}
+
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	check(CapsuleComp);
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	UCharacterMovementComponent* DlkMoveComp = GetCharacterMovement();
+	DlkMoveComp->StopMovementImmediately();
+	DlkMoveComp->DisableMovement();
+}
+
+void ADlkCharacter::DestroyDueToDeath()
+{
+	K2_OnDeathFinished();
+
+	UninitAndDestroy();
+}
+
+void ADlkCharacter::UninitAndDestroy()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(0.1f);
+	}
+
+	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
+	if (UDlkAbilitySystemComponent* DlkASC = GetDlkAbilitySystemComponent())
+	{
+		if (DlkASC->GetAvatarActor() == this)
+		{
+			PawnExtComponent->UninitializeAbilitySystem();
+		}
+	}
+
+	SetActorHiddenInGame(true);
 }
 

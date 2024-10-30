@@ -2,6 +2,7 @@
 #include "Deadlock/DlkLogChannels.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
+#include "Deadlock/DlkGameplayTags.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkHealthSet.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkHealthComponent)
@@ -53,16 +54,35 @@ void UDlkHealthComponent::InitializeWithAbilitySystem(UDlkAbilitySystemComponent
 	}
 
 	// HealthSet의 HealthAttribute의 업데이트가 일어날때마다 호출할 콜백으로 멤버메서드 HandleHealthChanged를 등록하자:
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UDlkHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
+	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UDlkHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
+
+
+	// Register to listen for attribute changes.
+	HealthSet->OnHealthChanged.AddUObject(this, &ThisClass::HandleHealthChanged);
+	HealthSet->OnMaxHealthChanged.AddUObject(this, &ThisClass::HandleMaxHealthChanged);
+	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
+
+	// TEMP: Reset attributes to default values.  Eventually this will be driven by a spread sheet.
+	//AbilitySystemComponent->SetNumericAttributeBase(ULyraHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
+
 
 	// 초기화 한번 해줬으니깐 Broadcast 해주자
 	OnHealthChanged.Broadcast(this, HealthSet->GetHealth(), HealthSet->GetHealth(), nullptr);
+	OnMaxHealthChanged.Broadcast(this, HealthSet->GetHealth(), HealthSet->GetHealth(), nullptr);
 }
 
 void UDlkHealthComponent::UninitializeWithAbilitySystem()
 {
-	AbilitySystemComponent = nullptr;
+	if (HealthSet)
+	{
+		HealthSet->OnHealthChanged.RemoveAll(this);
+		HealthSet->OnMaxHealthChanged.RemoveAll(this);
+		HealthSet->OnOutOfHealth.RemoveAll(this);
+	}
+
 	HealthSet = nullptr;
+	AbilitySystemComponent = nullptr;
+
 }
 
 static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& ChangeData)
@@ -76,9 +96,56 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 	return nullptr;
 }
 
-void UDlkHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
+void UDlkHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
-	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
+	OnHealthChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
+}
+
+void UDlkHealthComponent::HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+	//OnMaxHealthChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
+}
+
+void UDlkHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+#if WITH_SERVER_CODE
+		if (AbilitySystemComponent && DamageEffectSpec)
+		{
+			// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
+			{
+				FGameplayEventData Payload;
+				Payload.EventTag = DlkGameplayTags::GameplayEvent_Death;
+				Payload.Instigator = DamageInstigator;
+				Payload.Target = AbilitySystemComponent->GetAvatarActor();
+				Payload.OptionalObject = DamageEffectSpec->Def;
+				Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+				Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+				Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+				Payload.EventMagnitude = DamageMagnitude;
+
+				FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+				AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+			}
+
+			// Send a standardized verb message that other systems can observe
+			//{
+			//	FLyraVerbMessage Message;
+			//	Message.Verb = TAG_Lyra_Elimination_Message;
+			//	Message.Instigator = DamageInstigator;
+			//	Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			//	Message.Target = ULyraVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());
+			//	Message.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			//	//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
+			//	//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
+
+			//	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			//	MessageSystem.BroadcastMessage(Message.Verb, Message);
+			//}
+
+			//@TODO: assist messages (could compute from damage dealt elsewhere)?
+		}
+
+#endif // #if WITH_SERVER_CODE
 }
 
 UDlkHealthComponent* UDlkHealthComponent::FindHealthComponent(const AActor* Actor)
@@ -111,4 +178,48 @@ float UDlkHealthComponent::GetHealthNormalized() const
 		return ((MaxHealth > 0.0f) ? (Health / MaxHealth) : 0.0f);
 	}
 	return 0.0f;
+}
+
+void UDlkHealthComponent::StartDeath()
+{
+	if (DeathState != EDlkDeathState::NotDead)
+	{
+		return;
+	}
+
+	DeathState = EDlkDeathState::DeathStarted;
+
+	if (AbilitySystemComponent)
+	{
+		//AbilitySystemComponent->SetLooseGameplayTagCount(LyraGameplayTags::Status_Death_Dying, 1);
+	}
+
+	AActor* Owner = GetOwner();
+	check(Owner);
+
+	OnDeathStarted.Broadcast(Owner);
+
+	//Owner->ForceNetUpdate();
+}
+
+void UDlkHealthComponent::FinishDeath()
+{
+	if (DeathState != EDlkDeathState::DeathStarted)
+	{
+		return;
+	}
+
+	DeathState = EDlkDeathState::DeathFinished;
+
+	if (AbilitySystemComponent)
+	{
+		//AbilitySystemComponent->SetLooseGameplayTagCount(LyraGameplayTags::Status_Death_Dead, 1);
+	}
+
+	AActor* Owner = GetOwner();
+	check(Owner);
+
+	OnDeathFinished.Broadcast(Owner);
+
+	//Owner->ForceNetUpdate();
 }

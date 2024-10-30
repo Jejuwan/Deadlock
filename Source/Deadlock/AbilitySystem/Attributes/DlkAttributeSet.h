@@ -6,6 +6,8 @@
 #include "AttributeSet.h"
 #include "DlkAttributeSet.generated.h"
 
+struct FGameplayEffectSpec;
+
 /**
  * 아래 매크로는 AttributeSet에 Attribute를 추가할 때, 선언 및 정의해야할 메서드에 대한 간략버전을 제공한다:
  *
@@ -24,6 +26,8 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+
+DECLARE_MULTICAST_DELEGATE_SixParams(FDlkAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec* /*EffectSpec*/, float /*EffectMagnitude*/, float /*OldValue*/, float /*NewValue*/);
  /**
   * DlkAttributeSet
   * - Dlk와 마찬가지로 Dlk에서 메인 Attribute Set Class이다

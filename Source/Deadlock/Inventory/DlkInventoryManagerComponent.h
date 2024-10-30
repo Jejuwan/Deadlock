@@ -36,6 +36,10 @@ struct FDlkInventoryList
 
 	UPROPERTY()
 	TObjectPtr<UActorComponent> OwnerComponent;
+
+	TArray<UDlkInventoryItemInstance*> GetAllItems() const;
+public:
+	void RemoveEntry(UDlkInventoryItemInstance* Instance);
 };
 
 /**
@@ -53,6 +57,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	UDlkInventoryItemInstance* AddItemDefinition(TSubclassOf<UDlkInventoryItemDefinition> ItemDef);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
+	void RemoveItemInstance(UDlkInventoryItemInstance* ItemInstance);
+
+	UFUNCTION(BlueprintCallable, Category = Inventory, BlueprintPure = false)
+	TArray<UDlkInventoryItemInstance*> GetAllItems() const;
 	UPROPERTY()
 	FDlkInventoryList InventoryList;
 };

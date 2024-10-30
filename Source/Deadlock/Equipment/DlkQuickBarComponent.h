@@ -40,8 +40,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddItemToSlot(int32 SlotIndex, UDlkInventoryItemInstance* Item);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	UDlkInventoryItemInstance* RemoveItemFromSlot(int32 SlotIndex);
+
 	UFUNCTION(BlueprintCallable, Category = "Dlk")
 	void SetActiveSlotIndex(int32 NewIndex);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	TArray<UDlkInventoryItemInstance*> GetSlots() const
+	{
+		return Slots;
+	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	UDlkInventoryItemInstance* GetActiveSlotItem() const;

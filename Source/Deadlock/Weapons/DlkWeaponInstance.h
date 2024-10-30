@@ -27,4 +27,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation)
 	FDlkAnimLayerSelectionSet UnequippedAnimSet;
+
+protected:
+	/** Returns the owning Pawn's Platform User ID */
+	UFUNCTION(BlueprintCallable)
+	const FPlatformUserId GetOwningUserId() const;
+
+	/** Callback for when the owning pawn of this weapon dies. Removes all spawned device properties. */
+	UFUNCTION()
+	void OnDeathStarted(AActor* OwningActor);
+
+	/** Remove any device proeprties that were activated in ApplyDeviceProperties. */
+	void RemoveDeviceProperties();
 };

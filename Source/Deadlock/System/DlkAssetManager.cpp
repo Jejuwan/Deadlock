@@ -109,7 +109,7 @@ void UDlkAssetManager::StartInitialLoading()
 	Super::StartInitialLoading();
 
 	// DlkGameplayTags 초기화
-	// - Lyra와의 차이점을 한번 보고 가자:
+	// - Dlk와의 차이점을 한번 보고 가자:
 	//   - STARTUP_JOB() 매크로를 활용하고 있으나, 현재 우리는 로딩과 관계 없으므로 간단하게 구현
 	//FDlkGameplayTags::InitializeNativeTags();
 }
