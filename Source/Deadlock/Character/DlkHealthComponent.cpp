@@ -191,7 +191,7 @@ void UDlkHealthComponent::StartDeath()
 
 	if (AbilitySystemComponent)
 	{
-		//AbilitySystemComponent->SetLooseGameplayTagCount(LyraGameplayTags::Status_Death_Dying, 1);
+		//AbilitySystemComponent->SetLooseGameplayTagCount(DEADLOCKplayTags::Status_Death_Dying, 1);
 	}
 
 	AActor* Owner = GetOwner();
@@ -213,7 +213,7 @@ void UDlkHealthComponent::FinishDeath()
 
 	if (AbilitySystemComponent)
 	{
-		//AbilitySystemComponent->SetLooseGameplayTagCount(LyraGameplayTags::Status_Death_Dead, 1);
+		//AbilitySystemComponent->SetLooseGameplayTagCount(DEADLOCKplayTags::Status_Death_Dead, 1);
 	}
 
 	AActor* Owner = GetOwner();

@@ -36,6 +36,7 @@ public class Deadlock : ModuleRules
 		"Slate",
 		"SlateCore",
         "Niagara",
+		"AsyncMixin",
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {

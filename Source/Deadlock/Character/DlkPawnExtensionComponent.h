@@ -29,6 +29,8 @@ GENERATED_BODY()
 		/**
 		* member methods
 		*/
+		/** Returns the pawn extension component if one exists on the specified actor. */
+		UFUNCTION(BlueprintPure, Category = "Dlk|Pawn")
 		static UDlkPawnExtensionComponent* FindPawnExtensionComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UDlkPawnExtensionComponent>() : nullptr); }
 		template <class T>
 		const T* GetPawnData() const { return Cast<T>(PawnData); }
