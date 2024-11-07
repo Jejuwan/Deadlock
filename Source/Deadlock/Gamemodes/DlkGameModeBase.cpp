@@ -10,6 +10,7 @@
 #include "Deadlock/Character/DlkPawnExtensionComponent.h"
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Player/DlkPlayerState.h"
+#include "Deadlock/Player/DlkPlayerBotController.h"
 #include "Deadlock/UI/DlkHUD.h"
 #include "Deadlock/DlkLogChannels.h"
 #include "Kismet/GameplayStatics.h"
@@ -192,9 +193,20 @@ const UDlkPawnData* ADlkGameModeBase::GetPawnDataForController(const AController
 	{
 		// GetExperienceChecked ±¸Çö
 		const UDlkExperienceDefinition* Experience = ExperienceManagerComponent->GetCurrentExperienceChecked();
-		if (Experience->DefaultPawnData)
+
+		if(const ADlkPlayerController* PlayerController = Cast<ADlkPlayerController>(InController))
 		{
-			return Experience->DefaultPawnData;
+			if (Experience->DefaultPawnData)
+			{
+				return Experience->DefaultPawnData;
+			}
+		}
+		else if (const ADlkPlayerBotController* BotController = Cast<ADlkPlayerBotController>(InController))
+		{
+			if (Experience->MeleeMinionData)
+			{
+				return Experience->MeleeMinionData;
+			}
 		}
 	}
 
