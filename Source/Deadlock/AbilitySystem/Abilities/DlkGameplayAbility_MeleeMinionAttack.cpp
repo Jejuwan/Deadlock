@@ -1,24 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "DlkGameplayAbility_RangedWeapon.h"
+#include "DlkGameplayAbility_MeleeMinionAttack.h"
 
 #include "AbilitySystemComponent.h"
 #include "CollisionQueryParams.h"
 #include "CollisionShape.h"
 #include "DrawDebugHelpers.h"
-#include "DlkRangedWeaponInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Deadlock/AbilitySystem/DlkGameplayAbilityTargetData_SingleTarget.h"
 #include "Deadlock/Physics/DlkCollisionChannels.h"
+#include "Deadlock/DlkLogChannels.h"
+#include "Deadlock/Player/DlkPlayerBotController.h"
 
-UDlkGameplayAbility_RangedWeapon::UDlkGameplayAbility_RangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UDlkGameplayAbility_MeleeMinionAttack::UDlkGameplayAbility_MeleeMinionAttack(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
+void UDlkGameplayAbility_MeleeMinionAttack::StartMeleeMinionAttackTargeting()
 {
 	// ActorInfo는 AbilitySet에서 GiveAbility() 호출로 설정된다
 	// - UGameplayAbility::OnGiveAbility()에서 SetCurrentActorInfo()에서 설정된다
@@ -34,7 +35,7 @@ void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
 
 	//*** 여기서 Lyra는 샷건 처리와 같은 탄착 처리를 생략하고, 권총으로 진행하였다 (아래의 로직은 간단버전이다)
 
-	// 총알의 궤적의 Hit 정보를 계산
+	// Hit 정보를 계산
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(FoundHits);
 
@@ -62,142 +63,86 @@ void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
 	OnTargetDataReadyCallback(TargetData, FGameplayTag());
 }
 
-void UDlkGameplayAbility_RangedWeapon::PerformLocalTargeting(TArray<FHitResult>& OutHits)
+void UDlkGameplayAbility_MeleeMinionAttack::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
 	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 
-	UDlkRangedWeaponInstance* WeaponData = GetWeaponInstance();
-	if (AvatarPawn && AvatarPawn->IsLocallyControlled() && WeaponData)
+	if (AvatarPawn && AvatarPawn->IsLocallyControlled())
 	{
-		FRangedWeaponFiringInput InputData;
-		InputData.WeaponData = WeaponData;
-		InputData.bCanPlayBulletFX = true;
+		FMeleeMinionAttackInput InputData;
 
-		const FTransform TargetTransform = GetTargetingTransform(AvatarPawn, EDlkAbilityTargetingSource::CameraTowardsFocus);
-		// 언리얼은 ForwardVector가 (1, 0, 0) 즉 EAxis::X이다
-		// - GetUnitAxis()를 살펴보자
-		InputData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
-		InputData.StartTrace = TargetTransform.GetTranslation();
-		InputData.EndAim = InputData.StartTrace + InputData.AimDir * WeaponData->MaxDamageRange;
+		const FRotator WeaponRot = GetWeaponTargetingSourceRotation(WeaponSocketName);
+		const FVector WeaponLoc = GetWeaponTargetingSourceLocation(WeaponSocketName);
 
-#if 1
+		InputData.Rotation = GetWeaponTargetingSourceRotation(WeaponSocketName).Quaternion();
+		InputData.StartTrace = GetWeaponTargetingSourceLocation(WeaponSocketName);
+		InputData.EndAim = InputData.StartTrace + InputData.Rotation.GetUpVector() * WeaponHalfHeight*2.f;
+	
+
+#if 0
 		{
 			static float DebugThickness = 2.0f;
 			DrawDebugLine(GetWorld(), InputData.StartTrace, InputData.StartTrace + (InputData.AimDir * 100.0f), FColor::Yellow, false, 10.0f, 0, DebugThickness);
 		}
 #endif
 
-		TraceBulletsInCartridge(InputData, OutHits);
+		//TraceBulletsInCartridge(InputData, OutHits);
+		FHitResult Impact = DoSingleBulletTrace(InputData, WeaponRadius, /**bIsSimulated=*/ false, /**out*/ OutHits);
+
+
 	}
 }
 
-FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* SourcePawn, EDlkAbilityTargetingSource Source)
+
+FRotator UDlkGameplayAbility_MeleeMinionAttack::GetWeaponTargetingSourceRotation(FName SocketName) const
 {
-	check(SourcePawn);
-	check(Source == EDlkAbilityTargetingSource::CameraTowardsFocus);
+	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
+	check(AvatarPawn);
 
-	// 참고로 아래 로직은 CameraTowardsFocus만 추출한 로직이다:
-	// - 완전한 로직은 Lyra를 참고
+	const FRotator SourceTrans = AvatarPawn->GetActorRotation();
 
-	AController* Controller = SourcePawn->Controller;
-	if (Controller == nullptr)
+	// Skeletal Mesh Component 가져오기
+	if (USkeletalMeshComponent* SkeletalMesh = AvatarPawn->FindComponentByClass<USkeletalMeshComponent>())
 	{
-		return FTransform();
+		// Socket의 위치 가져오기
+		if (SkeletalMesh->DoesSocketExist(SocketName))
+		{
+			return SkeletalMesh->GetSocketRotation(SocketName);
+		}
+		else
+		{
+			UE_LOG(LogDlk, Warning, TEXT("Socket %s does not exist"), *SocketName.ToString());
+		}
 	}
-
-	// 매직넘버이다...
-	double FocalDistance = 1024.0f;
-	FVector FocalLoc;
-	FVector CamLoc;
-	FRotator CamRot;
-
-	// PlayerController로부터, Location과 Rotation 정보를 가져옴
-	APlayerController* PC = Cast<APlayerController>(Controller);
-	check(PC);
-	PC->GetPlayerViewPoint(CamLoc, CamRot);
-
-	FVector AimDir = CamRot.Vector().GetSafeNormal();
-	FocalLoc = CamLoc + (AimDir * FocalDistance);
-
-	// WeaponLoc이 아닌 Pawn의 Loc이다
-	const FVector WeaponLoc = GetWeaponTargetingSourceLocation();
-	FVector FinalCamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
-
-#if 1
-	{
-		// WeaponLoc (사실상 ActorLoc)
-		DrawDebugPoint(GetWorld(), WeaponLoc, 10.0f, FColor::Red, false, 60.0f);
-		// CamLoc
-		DrawDebugPoint(GetWorld(), CamLoc, 10.0f, FColor::Yellow, false, 60.0f);
-		// FinalCamLoc
-		DrawDebugPoint(GetWorld(), FinalCamLoc, 10.0f, FColor::Magenta, false, 60.0f);
-
-		// (WeaponLoc - FocalLoc)
-		DrawDebugLine(GetWorld(), FocalLoc, WeaponLoc, FColor::Yellow, false, 60.0f, 0, 2.0f);
-		// (AimDir)
-		DrawDebugLine(GetWorld(), CamLoc, FocalLoc, FColor::Blue, false, 60.0f, 0, 2.0f);
-
-		// Project Direction Line
-		DrawDebugLine(GetWorld(), WeaponLoc, FinalCamLoc, FColor::Red, false, 60.0f, 0, 2.0f);
-	}
-#endif
-
-	// Camera -> Focus 계산 완료
-	return FTransform(CamRot, FinalCamLoc);
+	return SourceTrans;
 }
 
-FVector UDlkGameplayAbility_RangedWeapon::GetWeaponTargetingSourceLocation() const
+FVector UDlkGameplayAbility_MeleeMinionAttack::GetWeaponTargetingSourceLocation(FName SocketName) const
 {
 	// 미구현인거 같다... Weapon 위치가 아닌 그냥 Pawn의 위치를 가져온다...
 	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 	check(AvatarPawn);
 
 	const FVector SourceLoc = AvatarPawn->GetActorLocation();
+
+	// Skeletal Mesh Component 가져오기
+	if (USkeletalMeshComponent* SkeletalMesh = AvatarPawn->FindComponentByClass<USkeletalMeshComponent>())
+	{
+		// Socket의 위치 가져오기
+		if (SkeletalMesh->DoesSocketExist(SocketName))
+		{
+			return SkeletalMesh->GetSocketLocation(SocketName);
+		}
+		else
+		{
+			UE_LOG(LogDlk, Warning, TEXT("Socket %s does not exist"), *SocketName.ToString());
+		}
+	}
 	return SourceLoc;
 }
 
-void UDlkGameplayAbility_RangedWeapon::TraceBulletsInCartridge(const FRangedWeaponFiringInput& InputData, TArray<FHitResult>& OutHits)
-{
-	UDlkRangedWeaponInstance* WeaponData = InputData.WeaponData;
-	check(WeaponData);
 
-	// MaxDamageRange를 고려하여, EndTrace를 정의하자
-	const FVector BulletDir = InputData.AimDir;
-	const FVector EndTrace = InputData.StartTrace + (BulletDir * WeaponData->MaxDamageRange);
-
-	// HitLocation의 초기화 값으로 EndTrace로 설정
-	FVector HitLocation = EndTrace;
-
-	// 총알을 하나 Trace 진행한다:m
-	// - 참고로 Lyra의 경우, 샷건과 같은 Cartridge에 여러개의 총알이 있을 경우를 처리하기 위해 for-loop을 활용하여, 복수개 Bullet을 Trace한다
-	TArray<FHitResult> AllImpacts;
-	FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, WeaponData->BulletTraceWeaponRadius, /**bIsSimulated=*/ false, /**out*/ AllImpacts);
-
-	const AActor* HitActor = Impact.GetActor();
-	if (HitActor)
-	{
-		if (AllImpacts.Num() > 0)
-		{
-			OutHits.Append(AllImpacts);
-		}
-
-		HitLocation = Impact.ImpactPoint;
-	}
-
-	// OutHits가 적어도 하나가 존재하도록, EndTrace를 활용하여, OutHits에 추가해준다
-	if (OutHits.Num() == 0)
-	{
-		if (!Impact.bBlockingHit)
-		{
-			Impact.Location = EndTrace;
-			Impact.ImpactPoint = EndTrace;
-		}
-
-		OutHits.Add(Impact);
-	}
-}
-
-FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace,
+FHitResult UDlkGameplayAbility_MeleeMinionAttack::DoSingleBulletTrace(const FMeleeMinionAttackInput& InputData,
 	float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHits) const
 {
 	FHitResult Impact;
@@ -206,7 +151,7 @@ FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& 
 	// - FindFirstPawnHitResult()를 여러번 Trace 진행을 막기 위해, OutHits를 확인해서 APawn 충돌 정보있으면 더이상 Trace하지 않는다
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
 	{
-		Impact = WeaponTrace(StartTrace, EndTrace, /*SweepRadius=*/0.0f, bIsSimulated, /*out*/ OutHits);
+		Impact = WeaponTrace(InputData, /*SweepRadius=*/0.0f, bIsSimulated, /*out*/ OutHits);
 	}
 
 	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
@@ -216,7 +161,7 @@ FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& 
 		{
 			// SweepHits에 Trace의 OutHits 정보를 저장
 			TArray<FHitResult> SweepHits;
-			Impact = WeaponTrace(StartTrace, EndTrace, SweepRadius, bIsSimulated, SweepHits);
+			Impact = WeaponTrace(InputData, SweepRadius, bIsSimulated, SweepHits);
 
 			// Sphere Trace로 진행한 결과인 SweepHits를 검색하여, Pawn이 있는가 검색
 			const int32 FirstPawnIdx = FindFirstPawnHitResult(SweepHits);
@@ -254,7 +199,7 @@ FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& 
 	return Impact;
 }
 
-FHitResult UDlkGameplayAbility_RangedWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace,float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const
+FHitResult UDlkGameplayAbility_MeleeMinionAttack::WeaponTrace(const FMeleeMinionAttackInput& InputData,float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const
 {
 	TArray<FHitResult> HitResults;
 
@@ -269,13 +214,22 @@ FHitResult UDlkGameplayAbility_RangedWeapon::WeaponTrace(const FVector& StartTra
 	const ECollisionChannel TraceChannel = DetermineTraceChannel(TraceParams, bIsSimulated);
 	if (SweepRadius > 0.0f)
 	{
-		GetWorld()->SweepMultiByChannel(HitResults, StartTrace, EndTrace, FQuat::Identity, TraceChannel, FCollisionShape::MakeSphere(SweepRadius), TraceParams);
+		GetWorld()->SweepMultiByChannel(HitResults, InputData.StartTrace, InputData.EndAim, InputData.Rotation, TraceChannel, FCollisionShape::MakeSphere(SweepRadius), TraceParams);
 	}
 	else
 	{
-		GetWorld()->LineTraceMultiByChannel(HitResults, StartTrace, EndTrace, TraceChannel, TraceParams);
+		GetWorld()->LineTraceMultiByChannel(HitResults, InputData.StartTrace, InputData.EndAim, TraceChannel, TraceParams);
 	}
 
+#if 1
+	{
+		FVector Center = (InputData.StartTrace + InputData.EndAim) /2.f;
+		FColor DrawColor = HitResults.IsEmpty() ? FColor::Red : FColor::Green;
+		float DebugLifeTime = 3.0f;
+		DrawDebugCapsule(GetWorld(), Center, WeaponHalfHeight, SweepRadius, InputData.Rotation, DrawColor, false, DebugLifeTime); // 시작 위치 캡슐
+
+	}
+#endif
 	FHitResult Hit(ForceInit);
 	if (HitResults.Num() > 0)
 	{
@@ -299,20 +253,20 @@ FHitResult UDlkGameplayAbility_RangedWeapon::WeaponTrace(const FVector& StartTra
 	else
 	{
 		// Hit의 결과 값을 기본 값으로 캐싱
-		Hit.TraceStart = StartTrace;
-		Hit.TraceEnd = EndTrace;
+		Hit.TraceStart = InputData.StartTrace;
+		Hit.TraceEnd = InputData.EndAim;
 	}
 
 	return Hit;
 }
 
-ECollisionChannel UDlkGameplayAbility_RangedWeapon::DetermineTraceChannel(FCollisionQueryParams& TraceParams,
+ECollisionChannel UDlkGameplayAbility_MeleeMinionAttack::DetermineTraceChannel(FCollisionQueryParams& TraceParams,
 	bool bIsSimulated) const
 {
 	return Dlk_TraceChannel_Weapon;
 }
 
-void UDlkGameplayAbility_RangedWeapon::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
+void UDlkGameplayAbility_MeleeMinionAttack::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
 {
 	if (AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
@@ -327,7 +281,7 @@ void UDlkGameplayAbility_RangedWeapon::AddAdditionalTraceIgnoreActors(FCollision
 	}
 }
 
-void UDlkGameplayAbility_RangedWeapon::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,FGameplayTag ApplicationTag)
+void UDlkGameplayAbility_MeleeMinionAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,FGameplayTag ApplicationTag)
 {
 	UAbilitySystemComponent* MyAbilitySystemComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyAbilitySystemComponent);
@@ -343,7 +297,7 @@ void UDlkGameplayAbility_RangedWeapon::OnTargetDataReadyCallback(const FGameplay
 		{
 			// OnRangeWeaponTargetDataReady BP 노드 호출한다:
 			// - 후일 여기서 우리는 GCN(GameplayCueNotify)를 처리할 것이다
-			OnRangeWeaponTargetDataReady(LocalTargetDataHandle);
+			OnMeleeMinionTargetDataReady(LocalTargetDataHandle);
 		}
 		else
 		{
@@ -353,7 +307,27 @@ void UDlkGameplayAbility_RangedWeapon::OnTargetDataReadyCallback(const FGameplay
 	}
 }
 
-UDlkRangedWeaponInstance* UDlkGameplayAbility_RangedWeapon::GetWeaponInstance()
+
+int32 UDlkGameplayAbility_MeleeMinionAttack::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults) const
 {
-	return Cast<UDlkRangedWeaponInstance>(GetAssociatedEquipment());
+	for (int32 Idx = 0; Idx < HitResults.Num(); ++Idx)
+	{
+		const FHitResult& CurHitResult = HitResults[Idx];
+		if (CurHitResult.HitObjectHandle.DoesRepresentClass(APawn::StaticClass()))
+		{
+			return Idx;
+		}
+		else
+		{
+			AActor* HitActor = CurHitResult.HitObjectHandle.FetchActor();
+
+			// 한단계 AttachParent에 Actor가 Pawn이라면?
+			// - 보통 복수개 단계로 AttachParent를 하지 않으므로, AttachParent 대상이 APawn이라고 생각할 수도 있겠다
+			if ((HitActor != nullptr) && (HitActor->GetAttachParentActor() != nullptr) && (Cast<APawn>(HitActor->GetAttachParentActor()) != nullptr))
+			{
+				return Idx;
+			}
+		}
+	}
+	return INDEX_NONE;
 }

@@ -4,42 +4,42 @@
 
 #include "CoreMinimal.h"
 #include "Deadlock/Equipment/DlkGameplayAbility_FromEquipment.h"
-#include "DlkGameplayAbility_RangedWeapon.generated.h"
+#include "DlkGameplayAbility_MeleeWeapon.generated.h"
 
-class UDlkRangedWeaponInstance;
+class UDlkMeleeWeaponInstance;
 
 /**
  * 
  */
 UCLASS()
-class DEADLOCK_API UDlkGameplayAbility_RangedWeapon : public UDlkGameplayAbility_FromEquipment
+class DEADLOCK_API UDlkGameplayAbility_MeleeWeapon : public UDlkGameplayAbility_FromEquipment
 {
 	GENERATED_BODY()
 public:
-	struct FRangedWeaponFiringInput
+	struct FMeleeWeaponFiringInput
 	{
 		FVector StartTrace;
 		FVector EndAim;
 		FVector AimDir;
-		UDlkRangedWeaponInstance* WeaponData = nullptr;
+		UDlkMeleeWeaponInstance* WeaponData = nullptr;
 		bool bCanPlayBulletFX = false;
 
-		FRangedWeaponFiringInput()
+		FMeleeWeaponFiringInput()
 			: StartTrace(ForceInitToZero)
 			, EndAim(ForceInitToZero)
 			, AimDir(ForceInitToZero)
 		{}
 	};
 
-	UDlkGameplayAbility_RangedWeapon(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UDlkGameplayAbility_MeleeWeapon(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION(BlueprintCallable)
-	void StartRangedWeaponTargeting();
+	void StartMeleeWeaponTargeting();
 
 	void PerformLocalTargeting(TArray<FHitResult>& OutHits);
 	FTransform GetTargetingTransform(APawn* SourcePawn, EDlkAbilityTargetingSource Source);
-	FVector GetWeaponTargetingSourceLocation() const;
-	void TraceBulletsInCartridge(const FRangedWeaponFiringInput& InputData, TArray<FHitResult>& OutHits);
+	FVector GetWeaponTargetingSourceLocation(FName SocketName) const;
+	void TraceBulletsInCartridge(const FMeleeWeaponFiringInput& InputData, TArray<FHitResult>& OutHits);
 	FHitResult DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHits) const;
 	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const;
 	ECollisionChannel DetermineTraceChannel(FCollisionQueryParams& TraceParams, bool bIsSimulated) const;
@@ -50,5 +50,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnRangeWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
-	UDlkRangedWeaponInstance* GetWeaponInstance();
+	UDlkMeleeWeaponInstance* GetWeaponInstance();
+
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	FName WeaponSocketName;
 };

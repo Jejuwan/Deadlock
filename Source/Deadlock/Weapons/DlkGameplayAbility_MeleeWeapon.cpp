@@ -1,24 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "DlkGameplayAbility_RangedWeapon.h"
+#include "DlkGameplayAbility_MeleeWeapon.h"
 
 #include "AbilitySystemComponent.h"
 #include "CollisionQueryParams.h"
 #include "CollisionShape.h"
 #include "DrawDebugHelpers.h"
-#include "DlkRangedWeaponInstance.h"
+#include "DlkMeleeWeaponInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Deadlock/AbilitySystem/DlkGameplayAbilityTargetData_SingleTarget.h"
 #include "Deadlock/Physics/DlkCollisionChannels.h"
+#include "Deadlock/DlkLogChannels.h"
 
-UDlkGameplayAbility_RangedWeapon::UDlkGameplayAbility_RangedWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UDlkGameplayAbility_MeleeWeapon::UDlkGameplayAbility_MeleeWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
 
-void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
+void UDlkGameplayAbility_MeleeWeapon::StartMeleeWeaponTargeting()
 {
 	// ActorInfo는 AbilitySet에서 GiveAbility() 호출로 설정된다
 	// - UGameplayAbility::OnGiveAbility()에서 SetCurrentActorInfo()에서 설정된다
@@ -34,7 +35,7 @@ void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
 
 	//*** 여기서 Lyra는 샷건 처리와 같은 탄착 처리를 생략하고, 권총으로 진행하였다 (아래의 로직은 간단버전이다)
 
-	// 총알의 궤적의 Hit 정보를 계산
+	// Hit 정보를 계산
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(FoundHits);
 
@@ -62,14 +63,14 @@ void UDlkGameplayAbility_RangedWeapon::StartRangedWeaponTargeting()
 	OnTargetDataReadyCallback(TargetData, FGameplayTag());
 }
 
-void UDlkGameplayAbility_RangedWeapon::PerformLocalTargeting(TArray<FHitResult>& OutHits)
+void UDlkGameplayAbility_MeleeWeapon::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
 	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 
-	UDlkRangedWeaponInstance* WeaponData = GetWeaponInstance();
+	UDlkMeleeWeaponInstance* WeaponData = GetWeaponInstance();
 	if (AvatarPawn && AvatarPawn->IsLocallyControlled() && WeaponData)
 	{
-		FRangedWeaponFiringInput InputData;
+		FMeleeWeaponFiringInput InputData;
 		InputData.WeaponData = WeaponData;
 		InputData.bCanPlayBulletFX = true;
 
@@ -91,7 +92,7 @@ void UDlkGameplayAbility_RangedWeapon::PerformLocalTargeting(TArray<FHitResult>&
 	}
 }
 
-FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* SourcePawn, EDlkAbilityTargetingSource Source)
+FTransform UDlkGameplayAbility_MeleeWeapon::GetTargetingTransform(APawn* SourcePawn, EDlkAbilityTargetingSource Source)
 {
 	check(SourcePawn);
 	check(Source == EDlkAbilityTargetingSource::CameraTowardsFocus);
@@ -120,25 +121,25 @@ FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* Source
 	FocalLoc = CamLoc + (AimDir * FocalDistance);
 
 	// WeaponLoc이 아닌 Pawn의 Loc이다
-	const FVector WeaponLoc = GetWeaponTargetingSourceLocation();
+	const FVector WeaponLoc = GetWeaponTargetingSourceLocation(WeaponSocketName);
 	FVector FinalCamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 
 #if 1
 	{
 		// WeaponLoc (사실상 ActorLoc)
 		DrawDebugPoint(GetWorld(), WeaponLoc, 10.0f, FColor::Red, false, 60.0f);
-		// CamLoc
-		DrawDebugPoint(GetWorld(), CamLoc, 10.0f, FColor::Yellow, false, 60.0f);
-		// FinalCamLoc
-		DrawDebugPoint(GetWorld(), FinalCamLoc, 10.0f, FColor::Magenta, false, 60.0f);
+		//// CamLoc
+		//DrawDebugPoint(GetWorld(), CamLoc, 10.0f, FColor::Yellow, false, 60.0f);
+		//// FinalCamLoc
+		//DrawDebugPoint(GetWorld(), FinalCamLoc, 10.0f, FColor::Magenta, false, 60.0f);
 
-		// (WeaponLoc - FocalLoc)
-		DrawDebugLine(GetWorld(), FocalLoc, WeaponLoc, FColor::Yellow, false, 60.0f, 0, 2.0f);
-		// (AimDir)
-		DrawDebugLine(GetWorld(), CamLoc, FocalLoc, FColor::Blue, false, 60.0f, 0, 2.0f);
+		//// (WeaponLoc - FocalLoc)
+		//DrawDebugLine(GetWorld(), FocalLoc, WeaponLoc, FColor::Yellow, false, 60.0f, 0, 2.0f);
+		//// (AimDir)
+		//DrawDebugLine(GetWorld(), CamLoc, FocalLoc, FColor::Blue, false, 60.0f, 0, 2.0f);
 
-		// Project Direction Line
-		DrawDebugLine(GetWorld(), WeaponLoc, FinalCamLoc, FColor::Red, false, 60.0f, 0, 2.0f);
+		//// Project Direction Line
+		//DrawDebugLine(GetWorld(), WeaponLoc, FinalCamLoc, FColor::Red, false, 60.0f, 0, 2.0f);
 	}
 #endif
 
@@ -146,19 +147,33 @@ FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* Source
 	return FTransform(CamRot, FinalCamLoc);
 }
 
-FVector UDlkGameplayAbility_RangedWeapon::GetWeaponTargetingSourceLocation() const
+FVector UDlkGameplayAbility_MeleeWeapon::GetWeaponTargetingSourceLocation(FName SocketName) const
 {
 	// 미구현인거 같다... Weapon 위치가 아닌 그냥 Pawn의 위치를 가져온다...
 	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 	check(AvatarPawn);
 
 	const FVector SourceLoc = AvatarPawn->GetActorLocation();
+
+	// Skeletal Mesh Component 가져오기
+	if (USkeletalMeshComponent* SkeletalMesh = AvatarPawn->FindComponentByClass<USkeletalMeshComponent>())
+	{
+		// Socket의 위치 가져오기
+		if (SkeletalMesh->DoesSocketExist(SocketName))
+		{
+			return SkeletalMesh->GetSocketLocation(SocketName);
+		}
+		else
+		{
+			UE_LOG(LogDlk, Warning, TEXT("Socket %s does not exist"), *SocketName.ToString());
+		}
+	}
 	return SourceLoc;
 }
 
-void UDlkGameplayAbility_RangedWeapon::TraceBulletsInCartridge(const FRangedWeaponFiringInput& InputData, TArray<FHitResult>& OutHits)
+void UDlkGameplayAbility_MeleeWeapon::TraceBulletsInCartridge(const FMeleeWeaponFiringInput& InputData, TArray<FHitResult>& OutHits)
 {
-	UDlkRangedWeaponInstance* WeaponData = InputData.WeaponData;
+	UDlkMeleeWeaponInstance* WeaponData = InputData.WeaponData;
 	check(WeaponData);
 
 	// MaxDamageRange를 고려하여, EndTrace를 정의하자
@@ -197,7 +212,7 @@ void UDlkGameplayAbility_RangedWeapon::TraceBulletsInCartridge(const FRangedWeap
 	}
 }
 
-FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace,
+FHitResult UDlkGameplayAbility_MeleeWeapon::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace,
 	float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHits) const
 {
 	FHitResult Impact;
@@ -254,7 +269,7 @@ FHitResult UDlkGameplayAbility_RangedWeapon::DoSingleBulletTrace(const FVector& 
 	return Impact;
 }
 
-FHitResult UDlkGameplayAbility_RangedWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace,float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const
+FHitResult UDlkGameplayAbility_MeleeWeapon::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace,float SweepRadius, bool bIsSimulated, TArray<FHitResult>& OutHitResults) const
 {
 	TArray<FHitResult> HitResults;
 
@@ -306,13 +321,13 @@ FHitResult UDlkGameplayAbility_RangedWeapon::WeaponTrace(const FVector& StartTra
 	return Hit;
 }
 
-ECollisionChannel UDlkGameplayAbility_RangedWeapon::DetermineTraceChannel(FCollisionQueryParams& TraceParams,
+ECollisionChannel UDlkGameplayAbility_MeleeWeapon::DetermineTraceChannel(FCollisionQueryParams& TraceParams,
 	bool bIsSimulated) const
 {
 	return Dlk_TraceChannel_Weapon;
 }
 
-void UDlkGameplayAbility_RangedWeapon::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
+void UDlkGameplayAbility_MeleeWeapon::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
 {
 	if (AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
@@ -327,7 +342,7 @@ void UDlkGameplayAbility_RangedWeapon::AddAdditionalTraceIgnoreActors(FCollision
 	}
 }
 
-void UDlkGameplayAbility_RangedWeapon::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,FGameplayTag ApplicationTag)
+void UDlkGameplayAbility_MeleeWeapon::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,FGameplayTag ApplicationTag)
 {
 	UAbilitySystemComponent* MyAbilitySystemComponent = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyAbilitySystemComponent);
@@ -353,7 +368,7 @@ void UDlkGameplayAbility_RangedWeapon::OnTargetDataReadyCallback(const FGameplay
 	}
 }
 
-UDlkRangedWeaponInstance* UDlkGameplayAbility_RangedWeapon::GetWeaponInstance()
+UDlkMeleeWeaponInstance* UDlkGameplayAbility_MeleeWeapon::GetWeaponInstance()
 {
-	return Cast<UDlkRangedWeaponInstance>(GetAssociatedEquipment());
+	return Cast<UDlkMeleeWeaponInstance>(GetAssociatedEquipment());
 }

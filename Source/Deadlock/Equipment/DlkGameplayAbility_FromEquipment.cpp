@@ -29,3 +29,27 @@ UDlkInventoryItemInstance* UDlkGameplayAbility_FromEquipment::GetAssociatedItem(
 	}
 	return nullptr;
 }
+
+int32 UDlkGameplayAbility_FromEquipment::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults) const
+{
+	for (int32 Idx = 0; Idx < HitResults.Num(); ++Idx)
+	{
+		const FHitResult& CurHitResult = HitResults[Idx];
+		if (CurHitResult.HitObjectHandle.DoesRepresentClass(APawn::StaticClass()))
+		{
+			return Idx;
+		}
+		else
+		{
+			AActor* HitActor = CurHitResult.HitObjectHandle.FetchActor();
+
+			// 한단계 AttachParent에 Actor가 Pawn이라면?
+			// - 보통 복수개 단계로 AttachParent를 하지 않으므로, AttachParent 대상이 APawn이라고 생각할 수도 있겠다
+			if ((HitActor != nullptr) && (HitActor->GetAttachParentActor() != nullptr) && (Cast<APawn>(HitActor->GetAttachParentActor()) != nullptr))
+			{
+				return Idx;
+			}
+		}
+	}
+	return INDEX_NONE;
+}

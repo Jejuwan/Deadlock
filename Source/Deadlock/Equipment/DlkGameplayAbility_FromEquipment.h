@@ -11,6 +11,14 @@ class UDlkInventoryItemInstance;
 /**
  * 
  */
+ /** 어디 대상으로 Taget으로 설정할지 옵션들 (Lyra의 경우, 다양한 옵션 존재) */
+UENUM(BlueprintType)
+enum class EDlkAbilityTargetingSource : uint8
+{
+	/** Camera 기준으로 진행 */
+	CameraTowardsFocus,
+};
+
 UCLASS()
 class DEADLOCK_API UDlkGameplayAbility_FromEquipment : public UDlkGameplayAbility
 {
@@ -21,4 +29,6 @@ public:
 	UDlkEquipmentInstance* GetAssociatedEquipment() const;
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
 	UDlkInventoryItemInstance* GetAssociatedItem() const;
+
+	int32 FindFirstPawnHitResult(const TArray<FHitResult>& HitResults) const;
 };
