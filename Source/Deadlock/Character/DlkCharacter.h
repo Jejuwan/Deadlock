@@ -12,6 +12,15 @@ class UDlkCameraComponent;
 class UDlkHealthComponent;
 class UDlkAbilitySystemComponent;
 
+
+UENUM(BlueprintType)
+enum class EDlkCharacterType : uint8
+{
+	RED,
+	BLUE,
+	Neutral
+};
+
 UCLASS()
 class DEADLOCK_API ADlkCharacter : public AModularCharacter, public IAbilitySystemInterface
 {
@@ -28,6 +37,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	UDlkAbilitySystemComponent* GetDlkAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
+	EDlkCharacterType GetCharacterType() { return CharacterType; }
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
+	FColor GetTeamColor() { return TeamColor; }
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
+	void SetTeamColor(FColor color) { TeamColor = color; }
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -67,9 +82,15 @@ protected:
 	// Called when the death sequence for the character has completed
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDeathFinished"))
 	void K2_OnDeathFinished();
-private:
+protected:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Dlk|PlayerState")
 	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	EDlkCharacterType CharacterType;
+
+	UPROPERTY(VisibleAnywhere)
+	FColor TeamColor;
 
 };

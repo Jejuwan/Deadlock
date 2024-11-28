@@ -29,7 +29,8 @@ public:
 	//Update Team Attitude for the AI
 	//UFUNCTION(BlueprintCallable, Category = "Dlk AI Player Controller")
 	//void UpdateTeamAttitude(UAIPerceptionComponent* AIPerception);
-
+	virtual void PreInitializeComponents() override;
+	virtual void BeginPlay() override;
 	virtual void OnUnPossess() override;
 
 

@@ -80,8 +80,8 @@ void UDlkBotCreationComponent::SpawnOneBot()
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnInfo.OverrideLevel = GetComponentLevel();
 	SpawnInfo.ObjectFlags |= RF_Transient;
-	AAIController* NewController = GetWorld()->SpawnActor<AAIController>(BotControllerClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnInfo);
-
+	AAIController* NewController = GetWorld()->SpawnActor<AAIController>(BotControllerClass, FVector(5,0,0), FRotator::ZeroRotator, SpawnInfo);
+	
 	if (NewController != nullptr)
 	{
 		ADlkGameModeBase* GameMode = GetGameMode<ADlkGameModeBase>();

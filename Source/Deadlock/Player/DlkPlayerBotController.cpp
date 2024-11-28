@@ -37,6 +37,16 @@ void ADlkPlayerBotController::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 }
 
+void ADlkPlayerBotController::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+}
+
+void ADlkPlayerBotController::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ADlkPlayerBotController::OnUnPossess()
 {
 	// Make sure the pawn that is being unpossessed doesn't remain our ASC's avatar actor
