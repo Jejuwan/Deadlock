@@ -33,7 +33,7 @@ void FDlkAbilitySet_GrantedHandles::TakeFromAbilitySystem(UDlkAbilitySystemCompo
 UDlkAbilitySet::UDlkAbilitySet(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {}
 
-void UDlkAbilitySet::GiveToAbilitySystem(UDlkAbilitySystemComponent* DlkASC, FDlkAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject)
+void UDlkAbilitySet::GiveToAbilitySystem(UDlkAbilitySystemComponent* DlkASC, FDlkAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
 	check(DlkASC);
 

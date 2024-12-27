@@ -60,7 +60,7 @@ void UDlkPawnExtensionComponent::InitializeAbilitySystem(UDlkAbilitySystemCompon
 	APawn* Pawn = GetPawnChecked<APawn>();
 
 	AActor* ExistingAvatar = InASC->GetAvatarActor();
-	check(!ExistingAvatar);
+	check(!ExistingAvatar); 
 
 	// ASC를 업데이트하고, InitAbilityActorInfo를 Pawn과 같이 호출하여, AvatarActor를 Pawn으로 업데이트 해준다
 	AbilitySystemComponent = InASC;

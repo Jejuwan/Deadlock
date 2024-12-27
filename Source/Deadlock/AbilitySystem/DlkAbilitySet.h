@@ -57,7 +57,7 @@ public:
 	UDlkAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	/** ASC에 허용가능한 Ability를 추가한다 */
-	void GiveToAbilitySystem(UDlkAbilitySystemComponent* DlkASC, FDlkAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr);
+	void GiveToAbilitySystem(UDlkAbilitySystemComponent* DlkASC, FDlkAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
 	/** 허용된 GameplayAbilities */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")

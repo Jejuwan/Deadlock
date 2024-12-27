@@ -24,10 +24,40 @@ void UDlkAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AAct
 
 	if (bHasNewPawnAvatar)
 	{
+		// Notify all abilities that a new pawn avatar has been set
+		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		{
+			UDlkGameplayAbility* DlkAbilityCDO = Cast<UDlkGameplayAbility>(AbilitySpec.Ability);
+			if (!DlkAbilityCDO)
+			{
+				continue;
+			}
+
+			if (DlkAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
+			{
+				TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
+				for (UGameplayAbility* AbilityInstance : Instances)
+				{
+					UDlkGameplayAbility* DlkAbilityInstance = Cast<UDlkGameplayAbility>(AbilityInstance);
+					if (DlkAbilityInstance)
+					{
+						// Ability instances may be missing for replays
+						DlkAbilityInstance->OnPawnAvatarSet();
+					}
+				}
+			}
+			else
+			{
+				DlkAbilityCDO->OnPawnAvatarSet();
+			}
+		}
+
 		if (UDlkAnimInstance* DlkAnimInst = Cast<UDlkAnimInstance>(ActorInfo->GetAnimInstance()))
 		{
 			DlkAnimInst->InitializeWithAbilitySystem(this);
 		}
+
+		TryActivateAbilitiesOnSpawn();
 	}
 }
 
@@ -170,5 +200,17 @@ void UDlkAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Abi
 	if (const UDlkGameplayAbility* DlkAbility = Cast<const UDlkGameplayAbility>(Ability))
 	{
 		DlkAbility->OnAbilityFailedToActivate(FailureReason);
+	}
+}
+
+void UDlkAbilitySystemComponent::TryActivateAbilitiesOnSpawn()
+{
+	ABILITYLIST_SCOPE_LOCK();
+	for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+	{
+		if (const UDlkGameplayAbility* DlkAbilityCDO = Cast<UDlkGameplayAbility>(AbilitySpec.Ability))
+		{
+			DlkAbilityCDO->TryActivateAbilityOnSpawn(AbilityActorInfo.Get(), AbilitySpec);
+		}
 	}
 }

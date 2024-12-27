@@ -47,6 +47,7 @@ void UDlkHealthComponent::InitializeWithAbilitySystem(UDlkAbilitySystemComponent
 	//     -> 이는 ASC에서 GetObjectsWithOuter로 HealthSet이 접근된다!!!
 	// - 한번 AbilitySystemComponent::InitializeComponent()을 보자
 	HealthSet = AbilitySystemComponent->GetSet<UDlkHealthSet>();
+
 	if (!HealthSet)
 	{
 		UE_LOG(LogDlk, Error, TEXT("DlkHealthComponent: Cannot initialize health component for owner [%s] with NULL health set on the ability system."), *GetNameSafe(Owner));
@@ -63,7 +64,7 @@ void UDlkHealthComponent::InitializeWithAbilitySystem(UDlkAbilitySystemComponent
 	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 
 	// TEMP: Reset attributes to default values.  Eventually this will be driven by a spread sheet.
-	//AbilitySystemComponent->SetNumericAttributeBase(ULyraHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
+	AbilitySystemComponent->SetNumericAttributeBase(UDlkHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
 
 
 	// 초기화 한번 해줬으니깐 Broadcast 해주자

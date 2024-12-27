@@ -41,4 +41,6 @@ protected:
 	void ClientNotifyAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason);*/
 
 	void HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason);
+
+	void TryActivateAbilitiesOnSpawn();
 };

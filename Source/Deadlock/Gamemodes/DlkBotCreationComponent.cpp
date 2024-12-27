@@ -92,7 +92,7 @@ void UDlkBotCreationComponent::SpawnOneBot()
 			//NewController->PlayerState->SetPlayerName(CreateBotName(NewController->PlayerState->GetPlayerId()));
 		}
 
-		//GameMode->GenericPlayerInitialization(NewController);
+		GameMode->GenericPlayerInitialization(NewController);
 		GameMode->RestartPlayer(NewController);
 
 		if (NewController->GetPawn() != nullptr)

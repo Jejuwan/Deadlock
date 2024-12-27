@@ -34,6 +34,8 @@ public:
 	virtual void OnUnPossess() override;
 
 
+	// Attempts to restart this controller (e.g., to respawn it)
+	void ServerRestartController();
 protected:	
 	//~AController interface
 	virtual void InitPlayerState() override;

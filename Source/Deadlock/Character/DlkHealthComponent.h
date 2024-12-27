@@ -58,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Lyra|Health")
 	EDlkDeathState GetDeathState() const { return DeathState; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Dlk|Health", Meta = (ExpandBoolAsExecs = "ReturnValue"))
+	bool IsDeadOrDying() const { return (DeathState > EDlkDeathState::NotDead); }
+
 	// Begins the death sequence for the owner.
 	virtual void StartDeath();
 
@@ -93,6 +96,7 @@ public:
 	// Delegate fired when the death sequence has finished.
 	UPROPERTY(BlueprintAssignable)
 	FDlkHealth_DeathEvent OnDeathFinished;
+
 
 	virtual void HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 	virtual void HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);

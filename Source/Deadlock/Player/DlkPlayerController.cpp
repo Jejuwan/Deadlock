@@ -29,7 +29,7 @@ void ADlkPlayerController::PostProcessInput(const float DeltaTime, const bool bG
 
 	if (UDlkAbilitySystemComponent* DlkASC = GetDlkAbilitySystemComponent())
 	{
-		DlkASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+		DlkASC->ProcessAbilityInput (DeltaTime, bGamePaused);
 	}
 
 	Super::PostProcessInput(DeltaTime, bGamePaused);

@@ -78,6 +78,7 @@ public:
 
 	virtual void GetAbilitySource(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& OutSourceLevel, const IDlkAbilitySourceInterface*& OutAbilitySource, AActor*& OutEffectCauser) const;
 
+	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 
 	/** 언제 GA가 활성화될지 정책 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dlk|AbilityActivation")
@@ -92,13 +93,21 @@ public:
 		NativeOnAbilityFailedToActivate(FailedReason);
 		ScriptOnAbilityFailedToActivate(FailedReason);
 	}
+
+	virtual void OnPawnAvatarSet();
 protected:
 	//gameplayability interface
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
+
+
 	/** Called when this ability is granted to the ability system component. */
 	UFUNCTION(BlueprintImplementableEvent, Category = Ability, DisplayName = "OnAbilityAdded")
 	void K2_OnAbilityAdded();
+
+	/** Called when the ability system is initialized with a pawn avatar. */
+	UFUNCTION(BlueprintImplementableEvent, Category = Ability, DisplayName = "OnPawnAvatarSet")
+	void K2_OnPawnAvatarSet();
 
 
 protected:

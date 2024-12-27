@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerState.h"
+#include "AbilitySystemInterface.h"
+#include "ModularPlayerState.h"
 #include "DlkPlayerState.generated.h"
 
 class UDlkPawnData;
@@ -12,8 +13,9 @@ class UDlkAbilitySystemComponent;
 /**
  * 
  */
+
 UCLASS()
-class DEADLOCK_API ADlkPlayerState : public APlayerState
+class DEADLOCK_API ADlkPlayerState : public AModularPlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
@@ -32,10 +34,13 @@ public:
 	void OnExperienceLoaded(const UDlkExperienceDefinition* CurrentExperience);
 	void SetPawnData(const UDlkPawnData* InPawnData);
 	UDlkAbilitySystemComponent* GetDlkAbilitySystemComponent() const { return AbilitySystemComponent; }
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UPROPERTY()
 	TObjectPtr<const UDlkPawnData> PawnData;
 
 	UPROPERTY(VisibleAnywhere, Category = "Dlk|PlayerState")
 	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
+
+	static const FName NAME_DlkAbilityReady;
 };

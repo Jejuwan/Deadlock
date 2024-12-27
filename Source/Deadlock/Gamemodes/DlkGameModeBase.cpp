@@ -97,6 +97,49 @@ APawn* ADlkGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController*
 }
 
 
+void ADlkGameModeBase::RequestPlayerRestartNextFrame(AController* Controller, bool bForceReset)
+{
+	if (bForceReset && (Controller != nullptr))
+	{
+		Controller->Reset();
+	}
+
+	if (APlayerController* PC = Cast<APlayerController>(Controller))
+	{
+		GetWorldTimerManager().SetTimerForNextTick(PC, &APlayerController::ServerRestartPlayer_Implementation);
+	}
+	/*else if (ADlkPlayerBotController* BotController = Cast<ADlkPlayerBotController>(Controller))
+	{
+		GetWorldTimerManager().SetTimerForNextTick(BotController, &ADlkPlayerBotController::ServerRestartController);
+	}*/
+}
+
+bool ADlkGameModeBase::ControllerCanRestart(AController* Controller)
+{
+	if (APlayerController* PC = Cast<APlayerController>(Controller))
+	{
+		if (!Super::PlayerCanRestart_Implementation(PC))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		// Bot version of Super::PlayerCanRestart_Implementation
+		if ((Controller == nullptr) || Controller->IsPendingKillPending())
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void ADlkGameModeBase::GenericPlayerInitialization(AController* NewPlayer)
+{
+	Super::GenericPlayerInitialization(NewPlayer);
+}
+
 void ADlkGameModeBase::HandleMatchAssignmentIfNotExpectingOne()
 {
 	// 해당 함수에서는 우리가 로딩할 Experience에 대해 PrimaryAssetId를 생성하여, OnMatchAssignmentGiven으로 넘겨준다

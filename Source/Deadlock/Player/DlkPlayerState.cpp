@@ -9,6 +9,9 @@
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkCombatSet.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkHealthSet.h"
+#include "Components/GameFrameworkComponentManager.h"
+
+const FName ADlkPlayerState::NAME_DlkAbilityReady("DlkAbilitiesReady");
 
 ADlkPlayerState::ADlkPlayerState(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -16,7 +19,7 @@ ADlkPlayerState::ADlkPlayerState(const FObjectInitializer& ObjectInitializer) : 
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	CreateDefaultSubobject<UDlkHealthSet>(TEXT("HealthSet"));
+ 	CreateDefaultSubobject<UDlkHealthSet>(TEXT("HealthSet"));
 	CreateDefaultSubobject<UDlkCombatSet>(TEXT("CombatSet"));
 }
 
@@ -76,4 +79,11 @@ void ADlkPlayerState::SetPawnData(const UDlkPawnData* InPawnData)
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 		}
 	}
+
+	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(this, NAME_DlkAbilityReady);
+}
+
+UAbilitySystemComponent* ADlkPlayerState::GetAbilitySystemComponent() const
+{
+	return GetDlkAbilitySystemComponent();
 }
