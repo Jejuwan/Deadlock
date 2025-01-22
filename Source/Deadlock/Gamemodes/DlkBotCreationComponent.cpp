@@ -9,6 +9,7 @@
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Deadlock/Character/DlkHealthComponent.h"
+#include "Deadlock/Character/DlkCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkBotCreationComponent)
 
@@ -40,10 +41,10 @@ void UDlkBotCreationComponent::OnExperienceLoaded(const UDlkExperienceDefinition
 
 void UDlkBotCreationComponent::ServerCreateBots_Implementation()
 {
-	if (BotControllerClass == nullptr)
-	{
-		return;
-	}
+	//if (BotControllerClass == nullptr)
+	//{
+	//	return;
+	//}
 
 	RemainingBotNames = RandomBotNames;
 
@@ -68,19 +69,20 @@ void UDlkBotCreationComponent::ServerCreateBots_Implementation()
 	}
 
 	// Create them
-	for (int32 Count = 0; Count < EffectiveBotCount; ++Count)
+	/*for (int32 Count = 0; Count < EffectiveBotCount; ++Count)
 	{
 		SpawnOneBot();
-	}
+	}*/
 }
 
-void UDlkBotCreationComponent::SpawnOneBot()
+void UDlkBotCreationComponent::SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterType Type)
 {
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnInfo.OverrideLevel = GetComponentLevel();
 	SpawnInfo.ObjectFlags |= RF_Transient;
-	AAIController* NewController = GetWorld()->SpawnActor<AAIController>(BotControllerClass, FVector(5,0,0), FRotator::ZeroRotator, SpawnInfo);
+	AAIController* NewController = GetWorld()->SpawnActor<AAIController>(BotControllerClass, Location, Rotation, SpawnInfo);
+	UE_LOG(LogTemp, Warning, TEXT("Spawn Location: %s"), *Location.ToString());
 	
 	if (NewController != nullptr)
 	{
@@ -93,7 +95,13 @@ void UDlkBotCreationComponent::SpawnOneBot()
 		}
 
 		GameMode->GenericPlayerInitialization(NewController);
-		GameMode->RestartPlayer(NewController);
+
+		FTransform SpawnTransform(Rotation, Location);
+		GameMode->RestartPlayerAtTransform(NewController, SpawnTransform);
+		
+		ADlkCharacter* Character = Cast<ADlkCharacter>(NewController->GetPawn());
+		Character->SetCharacterType(Type);
+		Character->K2_OnTeamColorChanged();
 
 		if (NewController->GetPawn() != nullptr)
 		{

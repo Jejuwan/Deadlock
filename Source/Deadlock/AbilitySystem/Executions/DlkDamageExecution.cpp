@@ -5,6 +5,7 @@
 #include "Deadlock/AbilitySystem/Attributes/DlkCombatSet.h"
 #include "Deadlock/AbilitySystem/DlkGameplayEffectContext.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySourceInterface.h"
+#include "Deadlock/Character/DlkCharacter.h"
 #include "Engine/World.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkDamageExecution)
@@ -85,7 +86,6 @@ void UDlkDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	}
 
 	// Apply rules for team damage/self damage/etc...
-	//float DamageInteractionAllowedMultiplier = 0.0f;
 	//if (HitActor)
 	//{
 	//	UDlkTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UDlkTeamSubsystem>();
@@ -94,6 +94,18 @@ void UDlkDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	//		DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
 	//	}
 	//}
+
+	float DamageInteractionAllowedMultiplier = 0.0f;
+	if (HitActor)
+	{
+		ADlkCharacter* Causer = Cast<ADlkCharacter>(TypedContext->GetEffectCauser());
+		ADlkCharacter* Hitter = Cast<ADlkCharacter>(HitActor);
+
+		DamageInteractionAllowedMultiplier = Causer->GetCharacterType() != Hitter->GetCharacterType() ? 1.0 : 0.0;
+
+		if (Hitter->GetCharacterType() == EDlkCharacterType::Neutral)
+			DamageInteractionAllowedMultiplier = 1.0;
+	}
 
 	// Determine distance
 	double Distance = WORLD_MAX;
@@ -126,7 +138,7 @@ void UDlkDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);
 
 	// Clamping is done when damage is converted to -health
-	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation /*DamageInteractionAllowedMultiplier */, 0.0f);
+	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
 
 	if (DamageDone > 0.0f)
 	{

@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TObjectPtr<UDlkPawnData> RangeMinionData;
 
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
+	TObjectPtr<UDlkPawnData> TowerData;
+
 	/** lost if game feature plugins this experience wants to have active */
 	// 해당 property는 단순히 마킹 및 기억용으로 남겨놓도록 하겠다:
 	// - GameMode에 따라 필요한 GameFeature plugin들을 로딩하는데 이에 대한 연결고리로 생각하면 된다 (현재는 쓰지 않음)

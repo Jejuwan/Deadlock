@@ -69,6 +69,11 @@ UAbilitySystemComponent* ADlkCharacter::GetAbilitySystemComponent() const
 	return PawnExtComponent->GetDlkAbilitySystemComponent();
 }
 
+void ADlkCharacter::SetTeamColor(FColor color)
+{
+	TeamColor = color;
+}
+
 // Called when the game starts or when spawned
 void ADlkCharacter::BeginPlay()
 {
@@ -102,7 +107,7 @@ void ADlkCharacter::PostInitializeComponents()
 
 void ADlkCharacter::OnDeathStarted(AActor* OwningActor)
 {
-	DisableMovementAndCollision();
+	//DisableMovementAndCollision();
 }
 
 void ADlkCharacter::OnDeathFinished(AActor* OwningActor)

@@ -40,6 +40,12 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
 	void FinishDeath();
 
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	void ExecuteStartDeath();
+
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	void ExecuteFinishDeath();
+
 protected:
 
 	// If enabled, the ability will automatically call StartDeath.  FinishDeath is always called when the ability ends if the death was started.

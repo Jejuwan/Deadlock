@@ -11,6 +11,7 @@
 #include "Deadlock/Player/DlkPlayerController.h"
 #include "Deadlock/Player/DlkPlayerState.h"
 #include "Deadlock/Player/DlkPlayerBotController.h"
+#include "Deadlock/Player/DlkTowerController.h"
 #include "Deadlock/UI/DlkHUD.h"
 #include "Deadlock/DlkLogChannels.h"
 #include "Kismet/GameplayStatics.h"
@@ -249,6 +250,13 @@ const UDlkPawnData* ADlkGameModeBase::GetPawnDataForController(const AController
 			if (Experience->MeleeMinionData)
 			{
 				return Experience->MeleeMinionData;
+			}
+		}
+		else if (const ADlkTowerController* TowerController = Cast<ADlkTowerController>(InController))
+		{
+			if (Experience->TowerData)
+			{
+				return Experience->TowerData;
 			}
 		}
 	}

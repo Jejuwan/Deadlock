@@ -67,6 +67,10 @@ public:
 	// Ends the death sequence for the owner.
 	virtual void FinishDeath();
 
+	void ExecuteStartDeath();
+	void ExecuteFinishDeath();
+
+
 	/** ASC와 HealthSet 초기화 */
 	void InitializeWithAbilitySystem(UDlkAbilitySystemComponent* InASC);
 	void UninitializeWithAbilitySystem();

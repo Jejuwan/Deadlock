@@ -42,7 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	FColor GetTeamColor() { return TeamColor; }
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
-	void SetTeamColor(FColor color) { TeamColor = color; }
+	void SetCharacterType(EDlkCharacterType type) { CharacterType = type; }
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
+	void SetTeamColor(FColor color);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -75,6 +77,7 @@ protected:
 	UFUNCTION()
 	virtual void OnDeathFinished(AActor* OwningActor);
 
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	void DisableMovementAndCollision();
 	void DestroyDueToDeath();
 	void UninitAndDestroy();
@@ -82,6 +85,9 @@ protected:
 	// Called when the death sequence for the character has completed
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDeathFinished"))
 	void K2_OnDeathFinished();
+public:
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnTeamColorChanged"))
+	void K2_OnTeamColorChanged();
 protected:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Dlk|PlayerState")
@@ -90,7 +96,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	EDlkCharacterType CharacterType;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	FColor TeamColor;
 
 };

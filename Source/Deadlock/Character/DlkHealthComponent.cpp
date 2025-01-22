@@ -224,3 +224,19 @@ void UDlkHealthComponent::FinishDeath()
 
 	//Owner->ForceNetUpdate();
 }
+
+void UDlkHealthComponent::ExecuteStartDeath()
+{
+	AActor* Owner = GetOwner();
+	check(Owner);
+
+	OnDeathStarted.Broadcast(Owner);
+}
+
+void UDlkHealthComponent::ExecuteFinishDeath()
+{
+	AActor* Owner = GetOwner();
+	check(Owner);
+
+	OnDeathFinished.Broadcast(Owner);
+}

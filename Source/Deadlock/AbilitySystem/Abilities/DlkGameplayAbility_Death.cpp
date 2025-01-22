@@ -89,3 +89,19 @@ void UDlkGameplayAbility_Death::FinishDeath()
 	}
 }
 
+void UDlkGameplayAbility_Death::ExecuteStartDeath()
+{
+	if (UDlkHealthComponent* HealthComponent = UDlkHealthComponent::FindHealthComponent(GetAvatarActorFromActorInfo()))
+	{
+		HealthComponent->ExecuteStartDeath();
+	}
+}
+
+void UDlkGameplayAbility_Death::ExecuteFinishDeath()
+{
+	if (UDlkHealthComponent* HealthComponent = UDlkHealthComponent::FindHealthComponent(GetAvatarActorFromActorInfo()))
+	{
+		HealthComponent->ExecuteFinishDeath();
+	}
+}
+

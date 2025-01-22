@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/GameStateComponent.h"
+#include "Deadlock/Character/DlkCharacter.h"
 #include "DlkBotCreationComponent.generated.h"
 
 class UDlkExperienceDefinition;
@@ -29,9 +30,6 @@ protected:
 	int32 NumBotsToCreate = 5;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Gameplay)
-	TSubclassOf<AAIController> BotControllerClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Gameplay)
 	TArray<FString> RandomBotNames;
 
 	TArray<FString> RemainingBotNames;
@@ -42,7 +40,7 @@ protected:
 
 	///** Always creates a single bot */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Gameplay)
-	virtual void SpawnOneBot();
+	virtual void SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterType Type);
 
 	/** Spawns bots up to NumBotsToCreate */
 	UFUNCTION(BlueprintNativeEvent, BlueprintAuthorityOnly, Category = Gameplay)
