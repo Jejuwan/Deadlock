@@ -75,7 +75,7 @@ void UDlkBotCreationComponent::ServerCreateBots_Implementation()
 	}*/
 }
 
-void UDlkBotCreationComponent::SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterType Type)
+void UDlkBotCreationComponent::SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterTeam Type)
 {
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -100,7 +100,7 @@ void UDlkBotCreationComponent::SpawnOneBot(TSubclassOf<AAIController> BotControl
 		GameMode->RestartPlayerAtTransform(NewController, SpawnTransform);
 		
 		ADlkCharacter* Character = Cast<ADlkCharacter>(NewController->GetPawn());
-		Character->SetCharacterType(Type);
+		Character->SetCharacterTeam(Type);
 		Character->K2_OnTeamColorChanged();
 
 		if (NewController->GetPawn() != nullptr)

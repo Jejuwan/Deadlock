@@ -5,6 +5,7 @@
 
 #include "DlkCameraComponent.h"
 #include "DlkPlayerCameraManager.h"
+#include "Deadlock/DlkLogChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkCameraMode)
 
@@ -49,7 +50,7 @@ UDlkCameraMode::UDlkCameraMode(const FObjectInitializer& ObjectInitializer)
 	ViewPitchMin = DLK_CAMERA_DEFAULT_PITCH_MIN;
 	ViewPitchMax = DLK_CAMERA_DEFAULT_PITCH_MAX;
 
-	BlendTime = 0.0f;
+	BlendTime = 0.5f;
 	BlendAlpha = 1.0f;
 	BlendWeight = 1.0f;
 
@@ -84,6 +85,37 @@ void UDlkCameraMode::UpdateView(float DeltaTime)
 	View.FieldOfView = FieldOfView;
 
 	// 정리하면, Character의 Location과 ControlRotation을 활용하여, View를 업데이트함
+}
+
+void UDlkCameraMode::SetBlendWeight(float Weight)
+{
+	BlendWeight = FMath::Clamp(Weight, 0.0f, 1.0f);
+
+	// Since we're setting the blend weight directly, we need to calculate the blend alpha to account for the blend function.
+	const float InvExponent = (BlendExponent > 0.0f) ? (1.0f / BlendExponent) : 1.0f;
+
+	switch (BlendFunction)
+	{
+	case EDlkCameraModeBlendFunction::Linear:
+		BlendAlpha = BlendWeight;
+		break;
+
+	case EDlkCameraModeBlendFunction::EaseIn:
+		BlendAlpha = FMath::InterpEaseIn(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	case EDlkCameraModeBlendFunction::EaseOut:
+		BlendAlpha = FMath::InterpEaseOut(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	case EDlkCameraModeBlendFunction::EaseInOut:
+		BlendAlpha = FMath::InterpEaseInOut(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	default:
+		checkf(false, TEXT("SetBlendWeight: Invalid BlendFunction [%d]\n"), (uint8)BlendFunction);
+		break;
+	}
 }
 
 FVector UDlkCameraMode::GetPivotLocation() const
@@ -124,6 +156,7 @@ void UDlkCameraMode::UpdateBlending(float DeltaTime)
 		// - BlendAlpha는 0 -> 1로 변화하는 과정:
 		// - DeltaTime을 활용하여, BlendTime을 1로 볼 경우, 진행 정도를 누적
 		BlendAlpha += (DeltaTime / BlendTime);
+		BlendAlpha = FMath::Min(BlendAlpha, 1.0f);
 	}
 	else
 	{
@@ -132,6 +165,7 @@ void UDlkCameraMode::UpdateBlending(float DeltaTime)
 
 	// BlendWeight를 [0,1]를 BlendFunction에 맞게 재매핑
 	const float Exponent = (BlendExponent > 0.0f) ? BlendExponent : 1.0f;
+
 	switch (BlendFunction)
 	{
 	case EDlkCameraModeBlendFunction::Linear:
@@ -237,7 +271,7 @@ void UDlkCameraModeStack::PushCameraMode(TSubclassOf<UDlkCameraMode>& CameraMode
 		}
 		else
 		{
-			// 당연히 우리가 원하는 CamearMode가 아니니깐, InvBlendWeight = (1.0 - BlendWeight)를 곱해줘야, 값이 누적되겠징?
+			// 당연히 우리가 원하는 CameraMode가 아니니깐, InvBlendWeight = (1.0 - BlendWeight)를 곱해줘야, 값이 누적된다
 			ExistingStackContribution *= (1.0f - CameraModeStack[StackIndex]->BlendWeight);
 		}
 	}
@@ -248,6 +282,7 @@ void UDlkCameraModeStack::PushCameraMode(TSubclassOf<UDlkCameraMode>& CameraMode
 	{
 		CameraModeStack.RemoveAt(ExistingStackIndex);
 		StackSize--;
+		//UE_LOG(LogDlk, Log, TEXT("RemoveAt1"));
 	}
 	else
 	{
@@ -259,14 +294,15 @@ void UDlkCameraModeStack::PushCameraMode(TSubclassOf<UDlkCameraMode>& CameraMode
 	// - 따라서 Blend하지 않는다면, BlendWeight를 1.0을 넣어 새로 넣는 CameraMode만 적용할 것이다
 	const bool bShouldBlend = ((CameraMode->BlendTime > 0.f) && (StackSize > 0));
 	const float BlendWeight = (bShouldBlend ? ExistingStackContribution : 1.0f);
-	CameraMode->BlendWeight = BlendWeight;
+	CameraMode->SetBlendWeight(BlendWeight);
+
 
 	// 흠.. Array를 Stack처럼 사용하는것은 알지만, Index 0에 넣는건 비효율적인데..
 	// - Push, Pop 메서드와 같이그냥 last에 넣는게... 어떨까 싶음
 	CameraModeStack.Insert(CameraMode, 0);
 
 	// 앞서 설명했듯이 마지막은 항상 1.0이 되어야 함!
-	CameraModeStack.Last()->BlendWeight = 1.0f;
+	CameraModeStack.Last()->SetBlendWeight(1.0f);
 }
 
 void UDlkCameraModeStack::EvaluateStack(float DeltaTime, FDlkCameraModeView& OutCameraModeView)
@@ -286,6 +322,7 @@ void UDlkCameraModeStack::UpdateStack(float DeltaTime)
 		return;
 	}
 
+
 	// CameraModeStack을 순회하며, CameraMode를 업데이트한다
 	int32 RemoveCount = 0;
 	int32 RemoveIndex = INDEX_NONE;
@@ -296,6 +333,8 @@ void UDlkCameraModeStack::UpdateStack(float DeltaTime)
 
 		// UpdateCameraMode를 확인해보자:
 		CameraMode->UpdateCameraMode(DeltaTime);
+
+		//UE_LOG(LogDlk, Log, TEXT("index: %d, weight: %f"), StackIndex, CameraMode->BlendWeight);
 
 		// 만약 하나라도 CameraMode가 BlendWeight가 1.0에 도달했다면, 그 이후 CameraMode를 제거한다
 		if (CameraMode->BlendWeight >= 1.0f)
@@ -310,6 +349,7 @@ void UDlkCameraModeStack::UpdateStack(float DeltaTime)
 	{
 		// 생각해보면 이거 때문에 Pop하고 Push를 안한거일지도?
 		CameraModeStack.RemoveAt(RemoveIndex, RemoveCount);
+		//UE_LOG(LogDlk, Log, TEXT("RemoveAt2"));
 	}
 }
 

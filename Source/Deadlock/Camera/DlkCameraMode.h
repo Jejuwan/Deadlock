@@ -51,6 +51,8 @@ public:
 	virtual void UpdateView(float DeltaTime);
 	void UpdateBlending(float DeltaTime);
 
+	void SetBlendWeight(float Weight);
+
 	UDlkCameraComponent* GetDlkCameraComponent() const;
 	AActor* GetTargetActor() const;
 	FVector GetPivotLocation() const;
@@ -94,7 +96,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Blending")
 	float BlendExponent;
 
-	/** Blend function */
+	// Function used for blending.
+	UPROPERTY(EditDefaultsOnly, Category = "Blending")
 	EDlkCameraModeBlendFunction BlendFunction;
 };
 

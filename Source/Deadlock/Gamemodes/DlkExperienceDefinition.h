@@ -28,8 +28,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TObjectPtr<UDlkPawnData> MeleeMinionData;
 
-	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
-	TObjectPtr<UDlkPawnData> RangeMinionData;
+	//UPROPERTY(EditDefaultsOnly, Category = Gameplay)
+	//TObjectPtr<UDlkPawnData> RangeMinionData;
 
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TObjectPtr<UDlkPawnData> TowerData;

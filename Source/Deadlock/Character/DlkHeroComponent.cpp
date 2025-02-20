@@ -184,6 +184,11 @@ void UDlkHeroComponent::CheckDefaultInitialization()
 PRAGMA_DISABLE_OPTIMIZATION
 TSubclassOf<UDlkCameraMode> UDlkHeroComponent::DetermineCameraMode() const
 {
+	if (AbilityCameraMode)
+	{
+		return AbilityCameraMode;
+	}
+
 	const APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn)
 	{
@@ -360,5 +365,23 @@ void UDlkHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 				DlkASC->AbilityInputTagReleased(InputTag);
 			}
 		}
+	}
+}
+
+void UDlkHeroComponent::SetAbilityCameraMode(TSubclassOf<UDlkCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (CameraMode)
+	{
+		AbilityCameraMode = CameraMode;
+		AbilityCameraModeOwningSpecHandle = OwningSpecHandle;
+	}
+}
+
+void UDlkHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (AbilityCameraModeOwningSpecHandle == OwningSpecHandle)
+	{
+		AbilityCameraMode = nullptr;
+		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
 	}
 }

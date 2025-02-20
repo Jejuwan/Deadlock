@@ -31,6 +31,7 @@ public class Deadlock : ModuleRules
 		"CommonUser",
 		"CommonGame",
 		"CommonUI",
+		"CommonInput",
 		"UMG",
 		"UIExtension",
 		"Slate",

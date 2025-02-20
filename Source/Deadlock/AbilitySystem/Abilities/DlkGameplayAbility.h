@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Deadlock/Camera/DlkCameraMode.h"
 #include "DlkGameplayAbility.generated.h"
 
 UENUM(BlueprintType)
@@ -95,6 +96,15 @@ public:
 	}
 
 	virtual void OnPawnAvatarSet();
+
+	// Sets the ability's camera mode.
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	void SetCameraMode(TSubclassOf<UDlkCameraMode> CameraMode);
+
+	// Clears the ability's camera mode.  Automatically called if needed when the ability ends.
+	UFUNCTION(BlueprintCallable, Category = "Dlk|Ability")
+	void ClearCameraMode();
+
 protected:
 	//gameplayability interface
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
@@ -130,4 +140,7 @@ protected:
 	// If true, extra information should be logged when this ability is canceled. This is temporary, used for tracking a bug.
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	bool bLogCancelation;
+
+	// Current camera mode set by the ability.
+	TSubclassOf<UDlkCameraMode> ActiveCameraMode;
 };

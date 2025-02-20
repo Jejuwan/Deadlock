@@ -174,6 +174,42 @@ void UDlkAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGame
 	InputReleasedSpecHandles.Reset();
 }
 
+void UDlkAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
+{
+	Super::AbilitySpecInputPressed(Spec);
+
+	// We don't support UGameplayAbility::bReplicateInputDirectly.
+	// Use replicated events instead so that the WaitInputPress ability task works.
+	if (Spec.IsActive())
+	{
+		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+	}
+}
+
+void UDlkAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& Spec)
+{
+	Super::AbilitySpecInputReleased(Spec);
+
+	// We don't support UGameplayAbility::bReplicateInputDirectly.
+	// Use replicated events instead so that the WaitInputRelease ability task works.
+	if (Spec.IsActive())
+	{
+		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+	}
+}
+
+void UDlkAbilitySystemComponent::NotifyAbilityActivated(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability)
+{
+	Super::NotifyAbilityActivated(Handle, Ability);
+
+	//if (UDlkGameplayAbility* DlkAbility = Cast<UDlkGameplayAbility>(Ability))
+	//{
+	//	AddAbilityToActivationGroup(LyraAbility->GetActivationGroup(), LyraAbility);
+	//}
+}
+
 void UDlkAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
 {
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
@@ -190,10 +226,10 @@ void UDlkAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecH
 	HandleAbilityFailed(Ability, FailureReason);
 }
 
-//void UDlkAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
-//{
-//	HandleAbilityFailed(Ability, FailureReason);
-//}
+void UDlkAbilitySystemComponent::NotifyAbilityEnded(FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, bool bWasCancelled)
+{
+	Super::NotifyAbilityEnded(Handle, Ability, bWasCancelled);
+}
 
 void UDlkAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
 {

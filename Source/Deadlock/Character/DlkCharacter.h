@@ -14,7 +14,7 @@ class UDlkAbilitySystemComponent;
 
 
 UENUM(BlueprintType)
-enum class EDlkCharacterType : uint8
+enum class EDlkCharacterTeam : uint8
 {
 	RED,
 	BLUE,
@@ -38,11 +38,11 @@ public:
 	UDlkAbilitySystemComponent* GetDlkAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
-	EDlkCharacterType GetCharacterType() { return CharacterType; }
+	EDlkCharacterTeam GetCharacterTeam() { return CharacterTeam; }
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	FColor GetTeamColor() { return TeamColor; }
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
-	void SetCharacterType(EDlkCharacterType type) { CharacterType = type; }
+	void SetCharacterTeam(EDlkCharacterTeam type) { CharacterTeam = type; }
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	void SetTeamColor(FColor color);
 protected:
@@ -94,7 +94,7 @@ protected:
 	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(EditDefaultsOnly)
-	EDlkCharacterType CharacterType;
+	EDlkCharacterTeam CharacterTeam;
 
 	UPROPERTY(EditDefaultsOnly)
 	FColor TeamColor;

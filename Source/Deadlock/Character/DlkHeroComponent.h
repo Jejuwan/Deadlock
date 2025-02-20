@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/PawnComponent.h"
 #include "Components/GameFrameworkInitStateInterface.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "Deadlock/Input/DlkMappableConfigPair.h"
 #include "DlkHeroComponent.generated.h"
 
@@ -12,6 +13,7 @@
  * 
  */
 struct FInputActionValue;
+
 class UDlkCameraMode;
 
 /**
@@ -30,6 +32,12 @@ public:
 	/** Returns the hero component if one exists on the specified actor. */
 	UFUNCTION(BlueprintPure, Category = "Dlk|Hero")
 	static UDlkHeroComponent* FindHeroComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UDlkHeroComponent>() : nullptr); }
+
+	/** Overrides the camera from an active gameplay ability */
+	void SetAbilityCameraMode(TSubclassOf<UDlkCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
+
+	/** Clears the camera override if it is set */
+	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
 	/** FeatureName Á¤ÀÇ */
 	static const FName NAME_ActorFeatureName;
@@ -68,4 +76,11 @@ public:
 */
 	UPROPERTY(EditAnywhere)
 	TArray<FDlkMappableConfigPair> DefaultInputConfigs;
+
+	/** Camera mode set by an ability. */
+	UPROPERTY()
+	TSubclassOf<UDlkCameraMode> AbilityCameraMode;
+
+	/** Spec handle for the last ability to set a camera mode. */
+	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
 };

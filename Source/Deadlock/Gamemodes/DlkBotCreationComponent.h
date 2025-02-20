@@ -40,7 +40,7 @@ protected:
 
 	///** Always creates a single bot */
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Gameplay)
-	virtual void SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterType Type);
+	virtual void SpawnOneBot(TSubclassOf<AAIController> BotControllerClass, FVector Location, FRotator Rotation, EDlkCharacterTeam Type);
 
 	/** Spawns bots up to NumBotsToCreate */
 	UFUNCTION(BlueprintNativeEvent, BlueprintAuthorityOnly, Category = Gameplay)

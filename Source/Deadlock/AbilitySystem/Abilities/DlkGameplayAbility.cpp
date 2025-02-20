@@ -1,4 +1,5 @@
 #include "DlkGameplayAbility.h"
+#include "AbilitySystemLog.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "DlkAbilityCost.h"
 #include "Deadlock/DlkGameplayTags.h"
@@ -11,6 +12,15 @@
 #include "Deadlock/AbilitySystem/DlkGameplayEffectContext.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkGameplayAbility)
+
+#define ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(FunctionName, ReturnValue)																				\
+{																																						\
+	if (!ensure(IsInstantiated()))																														\
+	{																																					\
+		ABILITY_LOG(Error, TEXT("%s: " #FunctionName " cannot be called on a non-instanced ability. Check the instancing policy."), *GetPathName());	\
+		return ReturnValue;																																\
+	}																																					\
+}
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, "Ability.PlayMontageOnActivateFail.Message");
@@ -220,5 +230,32 @@ void UDlkGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagCont
 			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 			MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
 		}
+	}
+}
+
+
+void UDlkGameplayAbility::SetCameraMode(TSubclassOf<UDlkCameraMode> CameraMode)
+{
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(SetCameraMode, );
+
+	if (UDlkHeroComponent* HeroComponent = GetHeroComponentFromActorInfo())
+	{
+		HeroComponent->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
+		ActiveCameraMode = CameraMode;
+	}
+}
+
+void UDlkGameplayAbility::ClearCameraMode()
+{
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(ClearCameraMode, );
+
+	if (ActiveCameraMode)
+	{
+		if (UDlkHeroComponent* HeroComponent = GetHeroComponentFromActorInfo())
+		{
+			HeroComponent->ClearAbilityCameraMode(CurrentSpecHandle);
+		}
+
+		ActiveCameraMode = nullptr;
 	}
 }

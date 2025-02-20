@@ -101,9 +101,9 @@ void UDlkDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 		ADlkCharacter* Causer = Cast<ADlkCharacter>(TypedContext->GetEffectCauser());
 		ADlkCharacter* Hitter = Cast<ADlkCharacter>(HitActor);
 
-		DamageInteractionAllowedMultiplier = Causer->GetCharacterType() != Hitter->GetCharacterType() ? 1.0 : 0.0;
+		DamageInteractionAllowedMultiplier = Causer->GetCharacterTeam() != Hitter->GetCharacterTeam() ? 1.0 : 0.0;
 
-		if (Hitter->GetCharacterType() == EDlkCharacterType::Neutral)
+		if (Hitter->GetCharacterTeam() == EDlkCharacterTeam::Neutral)
 			DamageInteractionAllowedMultiplier = 1.0;
 	}
 

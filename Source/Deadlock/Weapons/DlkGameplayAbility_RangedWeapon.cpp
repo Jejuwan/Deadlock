@@ -80,7 +80,7 @@ void UDlkGameplayAbility_RangedWeapon::PerformLocalTargeting(TArray<FHitResult>&
 		InputData.StartTrace = TargetTransform.GetTranslation();
 		InputData.EndAim = InputData.StartTrace + InputData.AimDir * WeaponData->MaxDamageRange;
 
-#if 1
+#if 0
 		{
 			static float DebugThickness = 2.0f;
 			DrawDebugLine(GetWorld(), InputData.StartTrace, InputData.StartTrace + (InputData.AimDir * 100.0f), FColor::Yellow, false, 10.0f, 0, DebugThickness);
@@ -123,7 +123,7 @@ FTransform UDlkGameplayAbility_RangedWeapon::GetTargetingTransform(APawn* Source
 	const FVector WeaponLoc = GetWeaponTargetingSourceLocation();
 	FVector FinalCamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 
-#if 1
+#if 0
 	{
 		// WeaponLoc (»ç½Ç»ó ActorLoc)
 		DrawDebugPoint(GetWorld(), WeaponLoc, 10.0f, FColor::Red, false, 60.0f);

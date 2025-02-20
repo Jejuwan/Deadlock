@@ -35,4 +35,5 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Dlk|GameState")
 	TObjectPtr<UDlkAbilitySystemComponent> AbilitySystemComponent;
 
+
 };
