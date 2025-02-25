@@ -27,6 +27,7 @@ class DEADLOCK_API UDlkGameInstance : public UCommonGameInstance
 	virtual void Init() override;
 	virtual void Shutdown() override;
 
+public:
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterType(EDlkCharacterType type) { CharacterType = type; }
 	UFUNCTION(BlueprintCallable)

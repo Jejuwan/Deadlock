@@ -4,6 +4,7 @@
 #include "DlkPlayerState.h"
 #include "Deadlock/Gamemodes/DlkExperienceManagerComponent.h"
 #include "Deadlock/Gamemodes/DlkGameModeBase.h"
+#include "Deadlock/System/DlkGameInstance.h"
 #include "Deadlock/Character/DlkPawnData.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySet.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"

@@ -12,6 +12,7 @@
 #include "Deadlock/Player/DlkPlayerState.h"
 #include "Deadlock/Player/DlkPlayerBotController.h"
 #include "Deadlock/Player/DlkTowerController.h"
+#include "Deadlock/System/DlkGameInstance.h"
 #include "Deadlock/UI/DlkHUD.h"
 #include "Deadlock/DlkLogChannels.h"
 #include "Kismet/GameplayStatics.h"
@@ -240,9 +241,21 @@ const UDlkPawnData* ADlkGameModeBase::GetPawnDataForController(const AController
 
 		if(const ADlkPlayerController* PlayerController = Cast<ADlkPlayerController>(InController))
 		{
-			if (Experience->DefaultPawnData)
+			if (Experience->FirstCharacterPawnData)
 			{
-				return Experience->DefaultPawnData;
+					if (const UDlkGameInstance* Instance = GetWorld()->GetGameInstance<UDlkGameInstance>())
+					{
+						switch (Instance->CharacterType)
+						{
+						case EDlkCharacterType::Manny:
+							return Experience->FirstCharacterPawnData;
+							break;
+						case EDlkCharacterType::Quinn:
+							return Experience->SecondCharacterPawnData;
+							break;
+						}
+					}
+				return Experience->FirstCharacterPawnData;
 			}
 		}
 		else if (const ADlkPlayerBotController* BotController = Cast<ADlkPlayerBotController>(InController))

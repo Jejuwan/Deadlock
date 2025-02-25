@@ -23,7 +23,10 @@ public:
 
 	/** the default pawn class to spawn for players */
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
-	TObjectPtr<UDlkPawnData> DefaultPawnData;
+	TObjectPtr<UDlkPawnData> FirstCharacterPawnData;
+
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
+	TObjectPtr<UDlkPawnData> SecondCharacterPawnData;
 
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TObjectPtr<UDlkPawnData> MeleeMinionData;
