@@ -20,6 +20,7 @@ public:
 
 	ATTRIBUTE_ACCESSORS(UDlkCombatSet, BaseHeal);
 	ATTRIBUTE_ACCESSORS(UDlkCombatSet, BaseDamage);
+	ATTRIBUTE_ACCESSORS(UDlkCombatSet, BaseBurn);
 
 	/**
 	 * FGameplayAttribute가 참고하는 실제 AttributeSet에 있는 데이터이다 (float보다 해당 Struct를 사용하는 것을 추천)
@@ -31,4 +32,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Dlk|Combat")
 	FGameplayAttributeData BaseDamage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Dlk|Combat")
+	FGameplayAttributeData BaseBurn;
 };

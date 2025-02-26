@@ -10,6 +10,7 @@
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkCombatSet.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkHealthSet.h"
+#include "Deadlock/AbilitySystem/Attributes/DlkBurntSet.h"
 #include "Components/GameFrameworkComponentManager.h"
 
 const FName ADlkPlayerState::NAME_DlkAbilityReady("DlkAbilitiesReady");
@@ -22,6 +23,7 @@ ADlkPlayerState::ADlkPlayerState(const FObjectInitializer& ObjectInitializer) : 
 
  	CreateDefaultSubobject<UDlkHealthSet>(TEXT("HealthSet"));
 	CreateDefaultSubobject<UDlkCombatSet>(TEXT("CombatSet"));
+	CreateDefaultSubobject<UDlkBurntSet>(TEXT("BurntSet"));
 }
 
 void ADlkPlayerState::PostInitializeComponents()

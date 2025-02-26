@@ -10,6 +10,7 @@
 class UDlkPawnExtensionComponent;
 class UDlkCameraComponent;
 class UDlkHealthComponent;
+class UDlkBurntComponent;
 class UDlkAbilitySystemComponent;
 
 
@@ -68,6 +69,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dlk|Character")
 	TObjectPtr<UDlkHealthComponent> HealthComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dlk|Character")
+	TObjectPtr<UDlkBurntComponent> BurntComponent;
+
 protected:
 	// Begins the death sequence for the character (disables collision, disables movement, etc...)
 	UFUNCTION()
@@ -76,6 +80,12 @@ protected:
 	// Ends the death sequence for the character (detaches controller, destroys pawn, etc...)
 	UFUNCTION()
 	virtual void OnDeathFinished(AActor* OwningActor);
+
+	UFUNCTION()
+	virtual void OnBurntStarted(AActor* OwningActor);
+
+	UFUNCTION()
+	virtual void OnBurntFinished(AActor* OwningActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Dlk|Character")
 	void DisableMovementAndCollision();

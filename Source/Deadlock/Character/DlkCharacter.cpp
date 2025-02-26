@@ -8,6 +8,7 @@
 #include "Deadlock/Camera/DlkCameraComponent.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "DlkHealthComponent.h"
+#include "DlkBurntComponent.h"
 
 // Sets default values
 ADlkCharacter::ADlkCharacter(const FObjectInitializer& ObjectInitializer)
@@ -42,6 +43,13 @@ ADlkCharacter::ADlkCharacter(const FObjectInitializer& ObjectInitializer)
 		HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 	}
 
+	// BurntComponent 생성
+	{
+		BurntComponent = CreateDefaultSubobject<UDlkBurntComponent>(TEXT("BurntComponent"));
+		BurntComponent->OnBurntStarted.AddDynamic(this, &ThisClass::OnBurntStarted);
+		BurntComponent->OnBurntFinished.AddDynamic(this, &ThisClass::OnBurntFinished);
+	}
+
 }
 
 void ADlkCharacter::OnAbilitySystemInitialized()
@@ -51,11 +59,13 @@ void ADlkCharacter::OnAbilitySystemInitialized()
 
 	// HealthComponent의 ASC를 통한 초기화
 	HealthComponent->InitializeWithAbilitySystem(DlkASC);
+	BurntComponent->InitializeWithAbilitySystem(DlkASC);
 }
 
 void ADlkCharacter::OnAbilitySystemUninitialized()
 {
 	HealthComponent->UninitializeWithAbilitySystem();
+	BurntComponent->UninitializeWithAbilitySystem();
 }
 
 UDlkAbilitySystemComponent* ADlkCharacter::GetDlkAbilitySystemComponent() const
@@ -113,6 +123,14 @@ void ADlkCharacter::OnDeathStarted(AActor* OwningActor)
 void ADlkCharacter::OnDeathFinished(AActor* OwningActor)
 {
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::DestroyDueToDeath);
+}
+
+void ADlkCharacter::OnBurntStarted(AActor* OwningActor)
+{
+}
+
+void ADlkCharacter::OnBurntFinished(AActor* OwningActor)
+{
 }
 
 void ADlkCharacter::DisableMovementAndCollision()
