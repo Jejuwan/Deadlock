@@ -5,6 +5,7 @@
 #include "Deadlock/DlkGameplayTags.h"
 #include "Deadlock/AbilitySystem/DlkAbilitySystemComponent.h"
 #include "Deadlock/AbilitySystem/Attributes/DlkBurntSet.h"
+#include "Deadlock/Character/DlkCharacter.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DlkBurntComponent)
 
 UDlkBurntComponent::UDlkBurntComponent(const FObjectInitializer& ObjectInitializer)
@@ -101,31 +102,32 @@ void UDlkBurntComponent::HandleMaxDegreeChanged(AActor* DamageInstigator, AActor
 
 void UDlkBurntComponent::HandleFullOfDegree(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
-}
-
-void UDlkBurntComponent::HandleOutOfDegree(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
-{
 #if WITH_SERVER_CODE
-		if (AbilitySystemComponent && DamageEffectSpec)
-		{
-			{
-			/*	FGameplayEventData Payload;
-				Payload.EventTag = DlkGameplayTags::GameplayEvent_Death;
-				Payload.Instigator = DamageInstigator;
-				Payload.Target = AbilitySystemComponent->GetAvatarActor();
-				Payload.OptionalObject = DamageEffectSpec->Def;
-				Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
-				Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
-				Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
-				Payload.EventMagnitude = DamageMagnitude;
+	if (AbilitySystemComponent && DamageEffectSpec)
+	{
+		//FGameplayEventData Payload;
+		//Payload.EventTag = DlkGameplayTags::GameplayEvent_Burn;
+		//Payload.Instigator = DamageInstigator;
+		//Payload.Target = AbilitySystemComponent->GetAvatarActor();
+		//Payload.OptionalObject = DamageEffectSpec->Def;
+		//Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+		//Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+		//Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+		//Payload.EventMagnitude = DamageMagnitude;
 
-				FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
-				AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);*/
-			}
+		//FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+		//AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+		ADlkCharacter* chr = Cast<ADlkCharacter>(AbilitySystemComponent->GetAvatarActor());
+		chr->TakeBurnDamage();
 
-		}
+		Burning = true;
+	}
 
 #endif // #if WITH_SERVER_CODE
+}
+
+void UDlkBurntComponent::HandleOutOfDegree(AActor * DamageInstigator, AActor * DamageCauser, const FGameplayEffectSpec * DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
 }
 
 UDlkBurntComponent* UDlkBurntComponent::FindBurntComponent(const AActor* Actor)

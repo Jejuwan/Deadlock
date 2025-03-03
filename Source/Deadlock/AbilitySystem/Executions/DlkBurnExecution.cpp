@@ -45,12 +45,9 @@ void UDlkBurnExecution::Execute_Implementation(const FGameplayEffectCustomExecut
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BurnStatics().BaseBurnDef, EvaluateParameters, BaseBurn);
 	}
 
-	// RelevantAttributesCapture을 통해 최종 계산된 BaseBurn을 0.0이하가 되지 않도록 한다 (Burning이니깐!)
-	const float BurningDone = FMath::Max(0.0f, BaseBurn);
-	if (BurningDone > 0.0f)
-	{
-		// GameplayEffectCalculation 이후, Modifier로서, 추가한다:
-		// - 해당 Modifier는 CombatSet에서 가져온 BaseBurn을 활용하여, BurnthSet의 Burning에 추가해준다
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UDlkBurntSet::GetIncreaseAttribute(), EGameplayModOp::Additive, BurningDone));
-	}
+
+	// GameplayEffectCalculation 이후, Modifier로서, 추가한다:
+	// - 해당 Modifier는 CombatSet에서 가져온 BaseBurn을 활용하여, BurnthSet의 Burning에 추가해준다
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UDlkBurntSet::GetIncreaseAttribute(), EGameplayModOp::Additive, BaseBurn));
+
 }

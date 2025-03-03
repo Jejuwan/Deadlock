@@ -92,12 +92,16 @@ protected:
 	void DestroyDueToDeath();
 	void UninitAndDestroy();
 
+
 	// Called when the death sequence for the character has completed
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDeathFinished"))
 	void K2_OnDeathFinished();
 public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnTeamColorChanged"))
 	void K2_OnTeamColorChanged();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void TakeBurnDamage();
 protected:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Dlk|PlayerState")

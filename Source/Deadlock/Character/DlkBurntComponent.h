@@ -74,6 +74,9 @@ public:
 	UPROPERTY()
 	TObjectPtr<const UDlkBurntSet> BurntSet;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool Burning;
+
 	UPROPERTY(BlueprintAssignable)
 	FDlkDegree_AttributeChanged OnDegreeChanged;
 
