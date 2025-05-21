@@ -1,4 +1,4 @@
-#Unreal GAS 기반 MOBA 슈터
+## Unreal GAS 기반 MOBA 슈터
 
 ### 프로젝트 소개
 Unreal Engine의 Lyra 샘플과 Deadlock 게임 구조를 참고해 제작한 MOBA 스타일 슈터 게임입니다. GAS를 활용한 능력 시스템과 컴포넌트 기반 설계를 중점적으로 구현했습니다.
@@ -7,33 +7,34 @@ Unreal Engine의 Lyra 샘플과 Deadlock 게임 구조를 참고해 제작한 MO
 - Unreal Engine 5, C++
 - Gameplay Ability System, Common UI, Game Feature Plugin
 
-### 핵심 코드 예시
+### 핵심 코드 
+#### 1. 캐릭터 외형을 컴포넌트화하여  메시 교체가 가능하도록 제작
+ControllerComponent_CharacterParts는 내가 고른 코스메틱 데이터를 기억하는 용도이고, 
+PawnComponent_CharacterParts는 현재 보여줄 외형을 장착하는 실행 파트입니다.
 
+#### ControllerComponent_CharacterParts
+Controller가 Pawn을 Possess할 때 PawnComponent에 CharacterPart를 추가합니다.
 ```cpp
-void UDlkAbilitySystemComponent::InitAbilities(const FDlkAbilitySet* AbilitySet)
+if (UDlkPawnComponent_CharacterParts* NewCustomizer = NewPawn ?
+NewPawn->FindComponentByClass<UDlkPawnComponent_CharacterParts>() : nullptr)
 {
-    for (const auto& Ability : AbilitySet->Abilities)
-    {
-        GiveAbility(FGameplayAbilitySpec(Ability.AbilityClass, Ability.Level));
-    }
+	for (FDlkControllerCharacterPartEntry& Entry : CharacterParts)
+	{
+		check(!Entry.Handle.IsValid());
+		Entry.Handle = NewCustomizer->AddCharacterPart(Entry.Part);
+	}
 }
 ```
-**설명**: 캐릭터나 무기에 등록된 AbilitySet의 내용을 GAS에 등록하는 로직입니다.
-
+#### PawnComponent_CharacterParts
+PawnComponent에서 ChildActorComponent를 부착하고 CharacterPart의 Class로 설정합니다.
 ```cpp
-void UMyCameraComponent::SetCameraMode(FName NewMode)
-{
-    CameraModeStack.Push(NewMode);
-    UpdateBlend(CameraModeStack.Top());
-}
+UChildActorComponent* PartComponent = NewObject<UChildActorComponent>(OwnerComponent->GetOwner());
+PartComponent->SetupAttachment(ComponentToAttachTo, Entry.Part.SocketName);
+PartComponent->SetChildActorClass(Entry.Part.PartClass);
+PartComponent->RegisterComponent();
 ```
-**설명**: 카메라 시야는 스택 구조로 관리되며, 조준 시에는 CM_ThirdPersonADS, 기본 상태에선 CM_ThirdPerson으로 전환됩니다.
-
-```cpp
-UGameplayCueManager::ExecuteCue(FGameplayTag CueTag, const FGameplayCueParameters& Params)
-```
-**설명**: 무기 발사, 타격 등에서 발생하는 이펙트를 Cue Tag와 함께 호출합니다.
 
 
-## Demo Video
+
+## 데모 영상
 [Youtube](https://www.youtube.com/watch?v=nFBAbuTQhJg)
